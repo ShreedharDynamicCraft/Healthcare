@@ -220,4 +220,77 @@ export const healthAPI = {
   },
 };
 
+// Dashboard analytics
+export const analyticsAPI = {
+  getDashboardStats: async () => {
+    const response = await api.get('/analytics/dashboard');
+    return response.data;
+  },
+  
+  getAppointmentStats: async (period = '7d') => {
+    const response = await api.get(`/analytics/appointments?period=${period}`);
+    return response.data;
+  },
+  
+  getPatientStats: async (period = '7d') => {
+    const response = await api.get(`/analytics/patients?period=${period}`);
+    return response.data;
+  },
+  
+  exportData: async (type: 'csv' | 'pdf', entity: string, filters?: any) => {
+    const response = await api.post(`/analytics/export`, {
+      type,
+      entity,
+      filters
+    }, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+};
+
+// Patients/Customers API
+export const patientsAPI = {
+  getAll: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    filters?: any;
+  }) => {
+    const response = await api.get('/patients', { params });
+    return response.data;
+  },
+  
+  getById: async (id: string) => {
+    const response = await api.get(`/patients/${id}`);
+    return response.data;
+  },
+  
+  create: async (patientData: any) => {
+    const response = await api.post('/patients', patientData);
+    return response.data;
+  },
+  
+  update: async (id: string, patientData: any) => {
+    const response = await api.put(`/patients/${id}`, patientData);
+    return response.data;
+  },
+  
+  delete: async (id: string) => {
+    await api.delete(`/patients/${id}`);
+  },
+  
+  export: async (format: 'csv' | 'pdf', filters?: any) => {
+    const response = await api.post('/patients/export', {
+      format,
+      filters
+    }, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+};
+
 export default api; 

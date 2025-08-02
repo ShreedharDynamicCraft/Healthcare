@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useRouter, usePathname } from 'next/navigation';
+import DarkModeToggle from '@/components/DarkModeToggle';
 import { 
   Home, 
   Clock, 
@@ -43,7 +44,7 @@ const navigation = [
     name: 'Specialists', 
     icon: Users, 
     description: 'Team management', 
-    href: '/dashboard',
+    href: '/dashboard/specialists',
     section: 'main'
   },
   { 
@@ -51,6 +52,13 @@ const navigation = [
     icon: Calendar, 
     description: 'Schedule & booking', 
     href: '/dashboard/appointments',
+    section: 'main'
+  },
+  { 
+    name: 'Patients', 
+    icon: FileText, 
+    description: 'Patient records', 
+    href: '/dashboard/patients',
     section: 'main'
   },
   { 
@@ -150,12 +158,15 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     <p className="text-xs text-purple-600 dark:text-purple-400">Admin Panel</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="p-2 text-gray-400 hover:text-purple-600 transition-colors rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <DarkModeToggle />
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="p-2 text-gray-400 hover:text-purple-600 transition-colors rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
               
               {/* Mobile Navigation */}
@@ -278,6 +289,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p className="text-xs text-purple-600 dark:text-purple-400">Admin Panel</p>
               </div>
             </div>
+            <DarkModeToggle />
           </div>
           
           {/* Desktop Navigation */}
