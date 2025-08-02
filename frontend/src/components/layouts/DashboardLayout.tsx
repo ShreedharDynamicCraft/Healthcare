@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { 
   Home, 
   Clock, 
@@ -83,6 +83,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -103,6 +104,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     setSidebarOpen(false);
     // Navigate without refresh
     router.push(href);
+  };
+
+  const isActiveRoute = (href: string) => {
+    if (href === '/dashboard') {
+      return pathname === '/dashboard';
+    }
+    return pathname.startsWith(href);
   };
 
   const mainNavItems = navigation.filter(item => item.section === 'main');
@@ -157,6 +165,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">Main</p>
                   {mainNavItems.map((item, index) => {
                     const Icon = item.icon;
+                    const isActive = isActiveRoute(item.href);
                     return (
                       <motion.button
                         key={item.name}
@@ -164,9 +173,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
                         onClick={(e) => handleNavigation(item.href, e)}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
+                        className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-left ${
+                          isActive
+                            ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-800/50 dark:to-pink-800/50 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300'
+                        }`}
                       >
-                        <Icon className="h-4 w-4 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
+                        <Icon className={`h-4 w-4 flex-shrink-0 ${
+                          isActive 
+                            ? 'text-purple-600 dark:text-purple-400' 
+                            : 'text-purple-500 group-hover:text-purple-600'
+                        }`} />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{item.name}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.description}</div>
@@ -181,6 +198,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">Administration</p>
                   {adminNavItems.map((item, index) => {
                     const Icon = item.icon;
+                    const isActive = isActiveRoute(item.href);
                     return (
                       <motion.button
                         key={item.name}
@@ -188,9 +206,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: (mainNavItems.length + index) * 0.05 }}
                         onClick={(e) => handleNavigation(item.href, e)}
-                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
+                        className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-left ${
+                          isActive
+                            ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-800/50 dark:to-pink-800/50 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300'
+                        }`}
                       >
-                        <Icon className="h-4 w-4 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
+                        <Icon className={`h-4 w-4 flex-shrink-0 ${
+                          isActive 
+                            ? 'text-purple-600 dark:text-purple-400' 
+                            : 'text-purple-500 group-hover:text-purple-600'
+                        }`} />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{item.name}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.description}</div>
@@ -261,6 +287,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">Main</p>
               {mainNavItems.map((item, index) => {
                 const Icon = item.icon;
+                const isActive = isActiveRoute(item.href);
                 return (
                   <motion.button
                     key={item.name}
@@ -268,9 +295,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 + 0.2 }}
                     onClick={(e) => handleNavigation(item.href, e)}
-                    className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
+                    className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group text-left ${
+                      isActive
+                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-800/50 dark:to-pink-800/50 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-lg'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300'
+                    }`}
                   >
-                    <Icon className="h-5 w-5 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
+                    <Icon className={`h-5 w-5 flex-shrink-0 ${
+                      isActive 
+                        ? 'text-purple-600 dark:text-purple-400' 
+                        : 'text-purple-500 group-hover:text-purple-600'
+                    }`} />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{item.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
@@ -285,6 +320,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">Administration</p>
               {adminNavItems.map((item, index) => {
                 const Icon = item.icon;
+                const isActive = isActiveRoute(item.href);
                 return (
                   <motion.button
                     key={item.name}
@@ -292,9 +328,17 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: (mainNavItems.length + index) * 0.05 + 0.2 }}
                     onClick={(e) => handleNavigation(item.href, e)}
-                    className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
+                    className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 group text-left ${
+                      isActive
+                        ? 'bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-800/50 dark:to-pink-800/50 text-purple-700 dark:text-purple-300 border-l-4 border-purple-500 shadow-lg'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300'
+                    }`}
                   >
-                    <Icon className="h-5 w-5 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
+                    <Icon className={`h-5 w-5 flex-shrink-0 ${
+                      isActive 
+                        ? 'text-purple-600 dark:text-purple-400' 
+                        : 'text-purple-500 group-hover:text-purple-600'
+                    }`} />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{item.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
