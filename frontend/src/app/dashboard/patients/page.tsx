@@ -25,6 +25,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { patientsAPI, analyticsAPI } from '@/lib/api';
+import { exportToPDF, exportToCSV } from '@/lib/exportUtils';
 import { toast } from 'react-hot-toast';
 
 interface Patient {
@@ -244,19 +245,39 @@ export default function CustomersPage() {
         }
       };
       
-      const blob = await analyticsAPI.exportData(format, 'patients', filterData);
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `patients-${new Date().toISOString().split('T')[0]}.${format}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      toast.success(`Patient data exported as ${format.toUpperCase()}`);
+      // Try API export first
+      try {
+        const blob = await analyticsAPI.exportData(format, 'patients', filterData);
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `patients-${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast.success(`Patient data exported as ${format.toUpperCase()}`);
+      } catch (apiError) {
+        // Fallback to local export
+        console.log('API export failed, using local export:', apiError);
+        
+        const dataToExport = selectedPatients.length > 0 
+          ? patients.filter(p => selectedPatients.includes(p.id))
+          : filteredAndSortedPatients;
+        
+        const filename = `patients-${new Date().toISOString().split('T')[0]}.${format}`;
+        
+        if (format === 'csv') {
+          exportToCSV(dataToExport, filename);
+        } else {
+          exportToPDF(dataToExport, filename, 'Healthcare Patients Report');
+        }
+        
+        toast.success(`Patient data exported as ${format.toUpperCase()}`);
+      }
     } catch (error) {
       console.error('Export failed:', error);
       toast.error('Failed to export data');
