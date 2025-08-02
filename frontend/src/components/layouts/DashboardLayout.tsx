@@ -36,7 +36,7 @@ const navigation = [
     name: 'Client Queue', 
     icon: Clock, 
     description: 'Live patient flow', 
-    href: '/dashboard',
+    href: '/dashboard/queue',
     section: 'main'
   },
   { 
@@ -50,7 +50,7 @@ const navigation = [
     name: 'Appointments', 
     icon: Calendar, 
     description: 'Schedule & booking', 
-    href: '/dashboard',
+    href: '/dashboard/appointments',
     section: 'main'
   },
   { 
@@ -95,6 +95,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const handleLogout = () => {
     logout();
     router.push('/login');
+  };
+
+  const handleNavigation = (href: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    // Close mobile sidebar when navigating
+    setSidebarOpen(false);
+    // Navigate without refresh
+    router.push(href);
   };
 
   const mainNavItems = navigation.filter(item => item.section === 'main');
@@ -150,20 +158,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {mainNavItems.map((item, index) => {
                     const Icon = item.icon;
                     return (
-                      <motion.a
+                      <motion.button
                         key={item.name}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        href={item.href}
-                        className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group"
+                        onClick={(e) => handleNavigation(item.href, e)}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
                       >
                         <Icon className="h-4 w-4 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{item.name}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.description}</div>
                         </div>
-                      </motion.a>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -174,20 +182,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                   {adminNavItems.map((item, index) => {
                     const Icon = item.icon;
                     return (
-                      <motion.a
+                      <motion.button
                         key={item.name}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: (mainNavItems.length + index) * 0.05 }}
-                        href={item.href}
-                        className="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group"
+                        onClick={(e) => handleNavigation(item.href, e)}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
                       >
                         <Icon className="h-4 w-4 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm">{item.name}</div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.description}</div>
                         </div>
-                      </motion.a>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -254,20 +262,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {mainNavItems.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <motion.a
+                  <motion.button
                     key={item.name}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 + 0.2 }}
-                    href={item.href}
-                    className="flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group"
+                    onClick={(e) => handleNavigation(item.href, e)}
+                    className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
                   >
                     <Icon className="h-5 w-5 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{item.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
                     </div>
-                  </motion.a>
+                  </motion.button>
                 );
               })}
             </div>
@@ -278,20 +286,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               {adminNavItems.map((item, index) => {
                 const Icon = item.icon;
                 return (
-                  <motion.a
+                  <motion.button
                     key={item.name}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: (mainNavItems.length + index) * 0.05 + 0.2 }}
-                    href={item.href}
-                    className="flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group"
+                    onClick={(e) => handleNavigation(item.href, e)}
+                    className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-200 group text-left"
                   >
                     <Icon className="h-5 w-5 text-purple-500 group-hover:text-purple-600 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium">{item.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{item.description}</div>
                     </div>
-                  </motion.a>
+                  </motion.button>
                 );
               })}
             </div>
