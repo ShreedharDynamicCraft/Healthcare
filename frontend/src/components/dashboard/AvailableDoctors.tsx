@@ -19,6 +19,7 @@ interface Doctor {
   location: string;
   status: 'available' | 'busy' | 'off_duty';
   bio?: string;
+  avatar?: string;
   availability: any;
 }
 
@@ -345,9 +346,28 @@ export default function AvailableDoctors({ onStatsUpdate }: AvailableDoctorsProp
                   <div className="flex items-center space-x-4">
                     <motion.div 
                       whileHover={{ scale: 1.1, rotate: 5 }}
-                      className="w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg"
+                      className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg group"
                     >
-                      <User className="h-8 w-8 text-white" />
+                      <img
+                        src={doctor.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.firstName + ' ' + doctor.lastName)}&size=64&background=${doctor.gender === 'female' ? 'ec4899' : doctor.gender === 'male' ? '8b5cf6' : '6366f1'}&color=ffffff&bold=true&format=png`}
+                        alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          // If custom avatar fails, try UI Avatars
+                          if (doctor.avatar && target.src === doctor.avatar) {
+                            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doctor.firstName + ' ' + doctor.lastName)}&size=64&background=${doctor.gender === 'female' ? 'ec4899' : doctor.gender === 'male' ? '8b5cf6' : '6366f1'}&color=ffffff&bold=true&format=png`;
+                          } else {
+                            // If both fail, show fallback
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }
+                        }}
+                      />
+                      <div className="hidden w-full h-full bg-gradient-to-r from-purple-600 to-pink-600 items-center justify-center">
+                        <User className="h-8 w-8 text-white" />
+                      </div>
                     </motion.div>
                     <div>
                       <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">

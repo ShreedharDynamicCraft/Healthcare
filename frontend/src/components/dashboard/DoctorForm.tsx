@@ -14,6 +14,7 @@ interface Doctor {
   location: string;
   status?: 'available' | 'busy' | 'off_duty';
   bio?: string;
+  avatar?: string;
   availability: any;
 }
 
@@ -24,16 +25,16 @@ interface DoctorFormProps {
 }
 
 const specializations = [
-  'General Practice',
-  'Pediatrics',
-  'Cardiology',
-  'Dermatology',
-  'Orthopedics',
-  'Neurology',
-  'Psychiatry',
-  'Surgery',
-  'Emergency Medicine',
-  'Internal Medicine'
+  'Intimate Health Specialist',
+  'Sexual Wellness Counselor',
+  'Reproductive Health Expert',
+  'Relationship Therapist',
+  'Women\'s Health Specialist',
+  'Men\'s Health Specialist',
+  'LGBTQ+ Health Advocate',
+  'Fertility Specialist',
+  'Hormonal Health Expert',
+  'Pelvic Health Therapist'
 ];
 
 export default function DoctorForm({ doctor, onSubmit, onCancel }: DoctorFormProps) {
@@ -47,6 +48,7 @@ export default function DoctorForm({ doctor, onSubmit, onCancel }: DoctorFormPro
     location: '',
     status: 'available' as 'available' | 'busy' | 'off_duty',
     bio: '',
+    avatar: '',
     availability: {
       monday: { available: true, start: '09:00', end: '17:00' },
       tuesday: { available: true, start: '09:00', end: '17:00' },
@@ -70,6 +72,7 @@ export default function DoctorForm({ doctor, onSubmit, onCancel }: DoctorFormPro
         location: doctor.location,
         status: doctor.status || 'available',
         bio: doctor.bio || '',
+        avatar: doctor.avatar || '',
         availability: doctor.availability
       });
     }
@@ -283,6 +286,43 @@ export default function DoctorForm({ doctor, onSubmit, onCancel }: DoctorFormPro
               className="input-field"
               placeholder="Enter doctor's bio..."
             />
+          </div>
+
+          {/* Avatar */}
+          <div>
+            <div className="flex items-center space-x-2 mb-4">
+              <User className="h-5 w-5 text-primary-600" />
+              <h3 className="text-lg font-semibold text-gray-900">Profile Photo</h3>
+            </div>
+            <div className="space-y-4">
+              <input
+                type="url"
+                value={formData.avatar}
+                onChange={(e) => setFormData(prev => ({ ...prev, avatar: e.target.value }))}
+                className="input-field"
+                placeholder="Enter photo URL (optional)"
+              />
+              {formData.avatar && (
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                  <img
+                    src={formData.avatar}
+                    alt="Preview"
+                    className="w-16 h-16 rounded-xl object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Preview</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Profile photo preview</p>
+                  </div>
+                </div>
+              )}
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Leave empty to use auto-generated avatar based on name and gender
+              </p>
+            </div>
           </div>
 
           {/* Availability Schedule */}

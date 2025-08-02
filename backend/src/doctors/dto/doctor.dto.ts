@@ -19,7 +19,7 @@ export class CreateDoctorDto {
   @IsString()
   phone: string;
 
-  @ApiProperty({ enum: DoctorSpecialization, example: DoctorSpecialization.GENERAL_PRACTICE })
+  @ApiProperty({ enum: DoctorSpecialization, example: DoctorSpecialization.INTIMATE_HEALTH })
   @IsEnum(DoctorSpecialization)
   specialization: DoctorSpecialization;
 
@@ -35,6 +35,11 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 
   @ApiProperty({ enum: DoctorStatus, example: DoctorStatus.AVAILABLE, required: false })
   @IsOptional()
@@ -111,6 +116,11 @@ export class UpdateDoctorDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

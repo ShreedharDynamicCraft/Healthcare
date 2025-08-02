@@ -9,16 +9,16 @@ import {
 import { Appointment } from '../../appointments/entities/appointment.entity';
 
 export enum DoctorSpecialization {
-  GENERAL_PRACTICE = 'General Practice',
-  PEDIATRICS = 'Pediatrics',
-  CARDIOLOGY = 'Cardiology',
-  DERMATOLOGY = 'Dermatology',
-  ORTHOPEDICS = 'Orthopedics',
-  NEUROLOGY = 'Neurology',
-  PSYCHIATRY = 'Psychiatry',
-  SURGERY = 'Surgery',
-  EMERGENCY_MEDICINE = 'Emergency Medicine',
-  INTERNAL_MEDICINE = 'Internal Medicine',
+  INTIMATE_HEALTH = 'Intimate Health Specialist',
+  SEXUAL_WELLNESS = 'Sexual Wellness Counselor',
+  REPRODUCTIVE_HEALTH = 'Reproductive Health Expert',
+  RELATIONSHIP_THERAPY = 'Relationship Therapist',
+  WOMENS_HEALTH = 'Women\'s Health Specialist',
+  MENS_HEALTH = 'Men\'s Health Specialist',
+  LGBTQ_HEALTH = 'LGBTQ+ Health Advocate',
+  FERTILITY = 'Fertility Specialist',
+  HORMONAL_HEALTH = 'Hormonal Health Expert',
+  PELVIC_HEALTH = 'Pelvic Health Therapist',
 }
 
 export enum DoctorGender {
@@ -85,6 +85,9 @@ export class Doctor {
 
   @Column({ type: 'text', nullable: true })
   bio: string;
+
+  @Column({ type: 'text', nullable: true })
+  avatar: string;
 
   @Column({ default: true })
   isActive: boolean;
