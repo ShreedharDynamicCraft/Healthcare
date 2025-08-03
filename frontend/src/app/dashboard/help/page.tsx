@@ -25,7 +25,11 @@ import {
   HelpCircle,
   Lightbulb,
   Star,
-  CheckCircle
+  CheckCircle,
+  Github,
+  Linkedin,
+  ExternalLink,
+  User
 } from 'lucide-react';
 
 interface FAQItem {
@@ -44,7 +48,8 @@ export default function HelpPage() {
     { id: 'modules', title: 'System Modules', icon: Settings },
     { id: 'analytics', title: 'Analytics & Reports', icon: BarChart3 },
     { id: 'technical', title: 'Technical Details', icon: Code },
-    { id: 'faq', title: 'FAQ', icon: HelpCircle }
+    { id: 'faq', title: 'FAQ', icon: HelpCircle },
+    { id: 'developer', title: 'Developer Info', icon: Users }
   ];
 
   const coreFeatures = [
@@ -706,6 +711,187 @@ export default function HelpPage() {
                     <li>• Export analytics data for detailed analysis</li>
                     <li>• Refresh the page if you experience any display issues</li>
                   </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Developer Info Section */}
+          {activeSection === 'developer' && (
+            <div className="space-y-8">
+              <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 rounded-3xl p-8 shadow-lg border border-purple-100 dark:border-purple-900">
+                <div className="flex items-center gap-3 mb-8">
+                  <User className="h-8 w-8 text-purple-500" />
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Developer Information</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Developer Profile */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800"
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                        <User className="h-8 w-8 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Shreedhar Anand</h3>
+                        <p className="text-purple-600 dark:text-purple-400 font-medium">Full Stack Developer</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Heart className="h-5 w-5 text-red-500" />
+                        <span className="text-gray-700 dark:text-gray-300">Healthcare Technology Enthusiast</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Code className="h-5 w-5 text-blue-500" />
+                        <span className="text-gray-700 dark:text-gray-300">React, TypeScript, Node.js & Nest.js Expert</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Shield className="h-5 w-5 text-green-500" />
+                        <span className="text-gray-700 dark:text-gray-300">Security & Performance Focused</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-purple-200 dark:border-purple-700">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                        Passionate about creating modern, user-friendly healthcare solutions that improve patient care and streamline clinical workflows.
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  {/* Contact & Resources */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="space-y-6"
+                  >
+                    {/* LinkedIn */}
+                    <motion.a
+                      href="https://www.linkedin.com/in/shreedhar-anand-23a699214/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="block bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 rounded-xl p-6 border border-blue-200 dark:border-blue-800 transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <Linkedin className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">LinkedIn Profile</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Connect and follow for updates</p>
+                          </div>
+                        </div>
+                        <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                      </div>
+                    </motion.a>
+
+                    {/* GitHub */}
+                    <motion.a
+                      href="https://github.com/ShreedharDynamicCraft/Healthcare"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      className="block bg-gray-50 hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800/70 rounded-xl p-6 border border-gray-200 dark:border-gray-700 transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gray-900 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                            <Github className="h-6 w-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white">Source Code</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">View the complete project repository</p>
+                          </div>
+                        </div>
+                        <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                      </div>
+                    </motion.a>
+
+                    {/* Project Stats */}
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-800">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-emerald-600" />
+                        Project Highlights
+                      </h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">15+</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Components</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">5</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Core Modules</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">100%</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">TypeScript</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">2025</div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Latest Tech</div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Technology Stack */}
+                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <Code className="h-5 w-5 text-purple-600" />
+                    Technology Stack Used
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {[
+                      { name: 'Next.js', color: 'bg-black' },
+                      { name: 'React', color: 'bg-blue-500' },
+                      { name: 'TypeScript', color: 'bg-blue-600' },
+                      { name: 'Tailwind CSS', color: 'bg-teal-500' },
+                      { name: 'Framer Motion', color: 'bg-pink-500' },
+                      { name: 'Node.js', color: 'bg-green-600' },
+                      { name: 'Nest.js', color: 'bg-red-600' }
+                    ].map((tech) => (
+                      <motion.div
+                        key={tech.name}
+                        whileHover={{ scale: 1.05 }}
+                        className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                      >
+                        <div className={`w-8 h-8 ${tech.color} rounded-lg mx-auto mb-2`}></div>
+                        <div className="text-sm font-medium text-gray-700 dark:text-gray-300">{tech.name}</div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="mt-8 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Heart className="h-6 w-6 text-red-500" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Thank You for Using This System!</h3>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    This healthcare management system was built with passion and attention to detail. 
+                    If you have any feedback, suggestions, or would like to collaborate on future projects, 
+                    feel free to reach out through the links above.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-sm">
+                      #HealthcareTech
+                    </span>
+                    <span className="bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm">
+                      #ReactDeveloper
+                    </span>
+                    <span className="bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm">
+                      #OpenSource
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
