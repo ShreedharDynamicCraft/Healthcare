@@ -169,12 +169,35 @@ export default function LoginPage() {
             className="mb-8"
           >
             <div className="mb-6">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-4 inline-block"
+              >
+                India's #1 sexual health provider
+              </motion.div>
+              
               <h1 className="text-4xl lg:text-5xl font-bold text-purple-800 dark:text-purple-300 mb-2">
                 Welcome to Allo
               </h1>
-              <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+              <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Your trusted sexual wellness clinic
               </h2>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mb-4"
+              >
+                <p className="text-xl lg:text-2xl font-medium text-purple-600 dark:text-purple-400">
+                  Better Sex,
+                </p>
+                <p className="text-xl lg:text-2xl font-medium text-pink-600 dark:text-pink-400">
+                  Better Life
+                </p>
+              </motion.div>
             </div>
             
             <motion.div 
