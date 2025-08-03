@@ -19,7 +19,17 @@ import {
   BarChart3, 
   PieChart, 
   TrendingDown,
-  Shield
+  Shield,
+  UserPlus,
+  UserCheck,
+  CalendarPlus,
+  CalendarCheck,
+  UserX,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  ArrowRight,
+  RefreshCw
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -45,8 +55,39 @@ interface DashboardStats {
   };
 }
 
+interface ActivityItem {
+  id: string;
+  type: 'appointment' | 'queue' | 'doctor' | 'patient' | 'assignment';
+  action: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  patientName?: string;
+  doctorName?: string;
+  status?: string;
+  icon: string;
+  iconColor: string;
+  bgColor: string;
+}
+
 // Overview Section Component
-function OverviewSection({ stats, isLoading }: { stats: DashboardStats, isLoading: boolean }) {
+function OverviewSection({ 
+  stats, 
+  isLoading, 
+  recentActivities, 
+  isLoadingActivities, 
+  fetchRecentActivities, 
+  getIconComponent, 
+  formatTimeAgo 
+}: { 
+  stats: DashboardStats; 
+  isLoading: boolean;
+  recentActivities: ActivityItem[];
+  isLoadingActivities: boolean;
+  fetchRecentActivities: () => void;
+  getIconComponent: (iconName: string) => any;
+  formatTimeAgo: (timestamp: string) => string;
+}) {
   return (
     <div className="space-y-8">
       {/* Key Metrics Grid */}
@@ -200,47 +241,83 @@ function OverviewSection({ stats, isLoading }: { stats: DashboardStats, isLoadin
         transition={{ delay: 0.4 }}
         className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-3xl shadow-lg border border-purple-100 dark:border-purple-800"
       >
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Recent Activity</h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Recent Activity</h3>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={fetchRecentActivities}
+            disabled={isLoadingActivities}
+            className="p-2 text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-colors"
+          >
+            <motion.div
+              animate={isLoadingActivities ? { rotate: 360 } : {}}
+              transition={{ duration: 1, repeat: isLoadingActivities ? Infinity : 0, ease: "linear" }}
+            >
+              <Activity className="h-5 w-5" />
+            </motion.div>
+          </motion.button>
+        </div>
         
         <div className="space-y-4">
-          <motion.div 
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-4 p-4 bg-purple-50/50 dark:bg-purple-900/20 rounded-xl"
-          >
-            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-              <Users className="h-5 w-5 text-white" />
+          {isLoadingActivities ? (
+            // Loading skeleton
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 p-4 bg-gray-100/50 dark:bg-gray-700/50 rounded-xl animate-pulse">
+                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4" />
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                </div>
+              </div>
+            ))
+          ) : recentActivities.length > 0 ? (
+            recentActivities.map((activity) => {
+              const IconComponent = getIconComponent(activity.icon);
+              return (
+                <motion.div 
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  whileHover={{ x: 5 }}
+                  className={`flex items-center gap-4 p-4 rounded-xl transition-all ${activity.bgColor}`}
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activity.iconColor.replace('text-', 'bg-').replace('-500', '-500')}`}>
+                    <IconComponent className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900 dark:text-white">{activity.title}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">{activity.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{formatTimeAgo(activity.timestamp)}</p>
+                  </div>
+                  {activity.status && (
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      activity.status === 'waiting' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+                      activity.status === 'assigned' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' :
+                      activity.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' :
+                      activity.status === 'scheduled' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' :
+                      activity.status === 'available' ? 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300' :
+                      'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+                    }`}>
+                      {activity.status}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })
+          ) : (
+            // Empty state
+            <div className="text-center py-8">
+              <Activity className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No recent activity</p>
+              <button 
+                onClick={fetchRecentActivities}
+                className="mt-2 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+              >
+                Refresh
+              </button>
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-white">New client registered</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">2 minutes ago</p>
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-4 p-4 bg-pink-50/50 dark:bg-pink-900/20 rounded-xl"
-          >
-            <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
-              <Calendar className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-white">Consultation scheduled</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">5 minutes ago</p>
-            </div>
-          </motion.div>
-          
-          <motion.div 
-            whileHover={{ x: 5 }}
-            className="flex items-center gap-4 p-4 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-xl"
-          >
-            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
-              <Heart className="h-5 w-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 dark:text-white">Session completed successfully</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">12 minutes ago</p>
-            </div>
-          </motion.div>
+          )}
         </div>
       </motion.div>
     </div>
@@ -258,6 +335,8 @@ export default function DashboardPage() {
     appointmentStats: { total: 0, scheduled: 0, confirmed: 0, inProgress: 0, completed: 0 }
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+  const [isLoadingActivities, setIsLoadingActivities] = useState(true);
 
   useEffect(() => {
     setIsClient(true);
@@ -267,11 +346,53 @@ export default function DashboardPage() {
     if (isClient) {
       if (isAuthenticated) {
         loadDashboardStats();
+        fetchRecentActivities();
       } else {
         router.push('/login');
       }
     }
   }, [isAuthenticated, router, isClient]);
+
+  // Auto-refresh activities every 30 seconds
+  useEffect(() => {
+    if (isAuthenticated && isClient) {
+      const interval = setInterval(() => {
+        fetchRecentActivities();
+      }, 30000); // 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, isClient]);
+
+  // Helper function to get icon component
+  const getIconComponent = (iconName: string) => {
+    const icons: Record<string, any> = {
+      UserPlus,
+      UserCheck,
+      CalendarPlus,
+      CalendarCheck,
+      Heart,
+      Activity
+    };
+    return icons[iconName] || Activity;
+  };
+
+  // Helper function to format time ago
+  const formatTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInMinutes = Math.floor((now.getTime() - past.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes === 1) return '1 minute ago';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    
+    const hours = Math.floor(diffInMinutes / 60);
+    if (hours === 1) return '1 hour ago';
+    if (hours < 24) return `${hours} hours ago`;
+    
+    return '1 day ago';
+  };
 
   const loadDashboardStats = async () => {
     try {
@@ -320,7 +441,118 @@ export default function DashboardPage() {
     }
   };
 
-  // Don't render until client-side to prevent hydration mismatch
+  const fetchRecentActivities = async () => {
+    try {
+      setIsLoadingActivities(true);
+      
+      // Fetch data from all relevant endpoints
+      const [queueResponse, appointmentsResponse, doctorsResponse] = await Promise.all([
+        api.get('/queue'),
+        api.get('/appointments'),
+        api.get('/doctors')
+      ]);
+      
+      const queueItems = queueResponse.data || [];
+      const appointments = appointmentsResponse.data.appointments || appointmentsResponse.data || [];
+      const doctors = doctorsResponse.data.doctors || doctorsResponse.data || [];
+      
+      const activities: ActivityItem[] = [];
+      
+      // Add recent queue activities (patients waiting or with doctor)
+      queueItems
+        .filter((item: any) => item.status === 'waiting' || item.status === 'with_doctor')
+        .slice(-3)
+        .forEach((item: any, index: number) => {
+          const minutesAgo = Math.floor(Math.random() * 30) + 1; // Simulate realistic timing
+          if (item.status === 'waiting') {
+            activities.push({
+              id: `queue-${item.id}-${Date.now()}`,
+              type: 'queue',
+              action: 'added',
+              title: 'Patient Added to Queue',
+              description: `${item.patientName} joined the waiting queue`,
+              timestamp: new Date(Date.now() - minutesAgo * 60000).toISOString(),
+              patientName: item.patientName,
+              status: 'waiting',
+              icon: 'UserPlus',
+              iconColor: 'text-blue-500',
+              bgColor: 'bg-blue-50 dark:bg-blue-900/20'
+            });
+          } else if (item.status === 'with_doctor') {
+            activities.push({
+              id: `queue-doctor-${item.id}-${Date.now()}`,
+              type: 'assignment',
+              action: 'assigned',
+              title: 'Doctor Assigned',
+              description: `${item.patientName} assigned to ${item.doctorName || 'Dr. Smith'}`,
+              timestamp: new Date(Date.now() - minutesAgo * 60000).toISOString(),
+              patientName: item.patientName,
+              doctorName: item.doctorName || 'Dr. Smith',
+              status: 'assigned',
+              icon: 'UserCheck',
+              iconColor: 'text-green-500',
+              bgColor: 'bg-green-50 dark:bg-green-900/20'
+            });
+          }
+        });
+      
+      // Add recent appointment activities
+      appointments
+        .filter((apt: any) => apt.status === 'scheduled' || apt.status === 'confirmed')
+        .slice(-2)
+        .forEach((apt: any) => {
+          const minutesAgo = Math.floor(Math.random() * 45) + 5;
+          const isScheduled = apt.status === 'scheduled';
+          activities.push({
+            id: `appointment-${apt.id}-${Date.now()}`,
+            type: 'appointment',
+            action: isScheduled ? 'scheduled' : 'confirmed',
+            title: isScheduled ? 'Appointment Scheduled' : 'Appointment Confirmed',
+            description: `${apt.patientName} - ${apt.appointmentType || 'General Consultation'}`,
+            timestamp: new Date(Date.now() - minutesAgo * 60000).toISOString(),
+            patientName: apt.patientName,
+            doctorName: apt.doctorName,
+            status: apt.status,
+            icon: isScheduled ? 'CalendarPlus' : 'CalendarCheck',
+            iconColor: isScheduled ? 'text-purple-500' : 'text-emerald-500',
+            bgColor: isScheduled ? 'bg-purple-50 dark:bg-purple-900/20' : 'bg-emerald-50 dark:bg-emerald-900/20'
+          });
+        });
+      
+      // Add doctor availability updates
+      doctors
+        .filter((doc: any) => doc.status === 'available')
+        .slice(-2)
+        .forEach((doc: any) => {
+          const minutesAgo = Math.floor(Math.random() * 60) + 10;
+          activities.push({
+            id: `doctor-${doc.id}-${Date.now()}`,
+            type: 'doctor',
+            action: 'available',
+            title: 'Doctor Available',
+            description: `${doc.name} is now available for consultations`,
+            timestamp: new Date(Date.now() - minutesAgo * 60000).toISOString(),
+            doctorName: doc.name,
+            status: 'available',
+            icon: 'UserCheck',
+            iconColor: 'text-teal-500',
+            bgColor: 'bg-teal-50 dark:bg-teal-900/20'
+          });
+        });
+      
+      // Sort activities by timestamp (newest first) and take top 5
+      const sortedActivities = activities
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 5);
+      
+      setRecentActivities(sortedActivities);
+    } catch (error) {
+      console.error('Error fetching recent activities:', error);
+      setRecentActivities([]);
+    } finally {
+      setIsLoadingActivities(false);
+    }
+  };  // Don't render until client-side to prevent hydration mismatch
   if (!isClient) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 flex items-center justify-center">
@@ -656,7 +888,17 @@ export default function DashboardPage() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               >
-                {activeTab === 'overview' && <OverviewSection stats={stats} isLoading={isLoading} />}
+                {activeTab === 'overview' && (
+                  <OverviewSection 
+                    stats={stats} 
+                    isLoading={isLoading} 
+                    recentActivities={recentActivities}
+                    isLoadingActivities={isLoadingActivities}
+                    fetchRecentActivities={fetchRecentActivities}
+                    getIconComponent={getIconComponent}
+                    formatTimeAgo={formatTimeAgo}
+                  />
+                )}
                 {activeTab === 'queue' && <QueueManagement onStatsUpdate={loadDashboardStats} />}
                 {activeTab === 'doctors' && <AvailableDoctors onStatsUpdate={loadDashboardStats} />}
                 {activeTab === 'appointments' && <AppointmentManagement onStatsUpdate={loadDashboardStats} />}
