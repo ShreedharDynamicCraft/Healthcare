@@ -35,12 +35,15 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await api.post('/auth/login', data);
+      
+      // The response interceptor unwraps the data, so response.data contains { accessToken, user }
       const { accessToken, user } = response.data;
       
       login(user, accessToken);
       toast.success('Welcome back! Login successful');
       router.push('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);

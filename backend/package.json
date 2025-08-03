@@ -25,7 +25,10 @@
     "migration:run": "npm run typeorm -- migration:run -d src/config/typeorm.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d src/config/typeorm.config.ts",
     "seed": "ts-node -r tsconfig-paths/register src/scripts/seed.ts",
-    "seed:prod": "node dist/scripts/seed.js"
+    "seed:prod": "node dist/scripts/seed.js",
+    "admin:update": "ts-node -r tsconfig-paths/register src/scripts/update-admin.ts",
+    "analytics:update": "ts-node -r tsconfig-paths/register src/scripts/update-analytics-data.ts",
+    "appointments:add": "ts-node -r tsconfig-paths/register src/scripts/add-more-appointments.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

@@ -31,7 +31,7 @@ async function bootstrap() {
 
   // CORS configuration
   app.enableCors({
-    origin: configService.get<string>('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: process.env.CORS_ORIGIN || true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -139,7 +139,7 @@ async function bootstrap() {
   logger.log(`🏥 Health Check: http://localhost:${port}/api/v1/health`);
   logger.log(`🔧 Environment: ${nodeEnv}`);
   logger.log(
-    `🌐 CORS Origin: ${configService.get<string>('CORS_ORIGIN', 'http://localhost:3000')}`,
+    `🌐 CORS Origin: ${configService.get<string>('CORS_ORIGIN', '*')}`,
   );
 }
 
