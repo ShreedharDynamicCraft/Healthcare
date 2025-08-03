@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
       };
 
       toast(message.message, {
-        duration: 3000,
+        duration: 1000,
         style: getToastStyle(message.type),
         position: 'bottom-right'
       });

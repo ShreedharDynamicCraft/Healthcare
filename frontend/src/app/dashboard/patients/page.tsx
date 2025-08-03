@@ -68,7 +68,7 @@ export default function PatientsPage() {
   const [filters, setFilters] = useState<FilterOptions>({
     dateRange: {
       startDate: '',
-      endDate: new Date().toISOString().split('T')[0] // Today
+      endDate: '' // Remove default end date filter that might be filtering out patients
     },
     name: '',
     location: '',
@@ -93,14 +93,100 @@ export default function PatientsPage() {
       const appointments = appointmentsResponse.data.appointments || appointmentsResponse.data || [];
       const queueEntries = queueResponse.data || [];
       
-      // Create comprehensive patient records
+      // Create comprehensive patient records with better deduplication
       const patientMap = new Map<string, Patient>();
       
-      // Process appointments
-      appointments.forEach((appointment: any) => {
-        const key = appointment.patientPhone || appointment.patientEmail || appointment.patientName;
+      // Helper function to create a consistent patient key
+      const createPatientKey = (name: string, phone: string, email?: string) => {
+        const normalizedPhone = phone?.replace(/\D/g, ''); // Remove non-digits
+        const normalizedEmail = email?.toLowerCase().trim();
+        const normalizedName = name?.toLowerCase().trim();
         
-        if (!patientMap.has(key)) {
+        // Priority: phone > email > name (but be consistent)
+        if (normalizedPhone && normalizedPhone.length >= 10) {
+          return `phone:${normalizedPhone}`;
+        }
+        if (normalizedEmail && normalizedEmail.includes('@')) {
+          return `email:${normalizedEmail}`;
+        }
+        if (normalizedName) {
+          return `name:${normalizedName}`;
+        }
+        return `unknown:${Date.now()}`;
+      };
+      
+      // Helper function to find existing patient by multiple criteria
+      const findExistingPatient = (name: string, phone: string, email?: string) => {
+        const normalizedPhone = phone?.replace(/\D/g, '');
+        const normalizedEmail = email?.toLowerCase().trim();
+        const normalizedName = name?.toLowerCase().trim();
+        
+        const entries = Array.from(patientMap.entries());
+        for (const [key, patient] of entries) {
+          const existingPhone = patient.patientPhone?.replace(/\D/g, '');
+          const existingEmail = patient.patientEmail?.toLowerCase().trim();
+          const existingName = patient.patientName?.toLowerCase().trim();
+          
+          // Match by phone (strongest match)
+          if (normalizedPhone && existingPhone && normalizedPhone === existingPhone) {
+            return { patient, key };
+          }
+          
+          // Match by email (strong match)
+          if (normalizedEmail && existingEmail && normalizedEmail === existingEmail) {
+            return { patient, key };
+          }
+          
+          // Match by name (weaker match, be more careful)
+          if (normalizedName && existingName && normalizedName === existingName) {
+            return { patient, key };
+          }
+        }
+        return null;
+      };
+      
+      // First pass: process all appointments
+      console.log('Processing appointments...');
+      appointments.forEach((appointment: any, index: number) => {
+        console.log(`Processing appointment ${index + 1}:`, {
+          name: appointment.patientName,
+          phone: appointment.patientPhone,
+          email: appointment.patientEmail
+        });
+        
+        // Try to find existing patient first
+        const existing = findExistingPatient(
+          appointment.patientName, 
+          appointment.patientPhone, 
+          appointment.patientEmail
+        );
+        
+        if (existing) {
+          console.log(`Found existing patient: ${existing.patient.patientName}, adding appointment`);
+          // Add to existing patient
+          existing.patient.appointments.push(appointment);
+          existing.patient.totalVisits++;
+          
+          // Update contact info if missing
+          if (!existing.patient.patientPhone && appointment.patientPhone) {
+            existing.patient.patientPhone = appointment.patientPhone;
+          }
+          if (!existing.patient.patientEmail && appointment.patientEmail) {
+            existing.patient.patientEmail = appointment.patientEmail;
+          }
+          
+          // Update dates
+          if (new Date(appointment.appointmentDate) > new Date(existing.patient.lastVisitDate || '')) {
+            existing.patient.lastVisitDate = appointment.appointmentDate;
+          }
+          if (new Date(appointment.appointmentDate) < new Date(existing.patient.registrationDate)) {
+            existing.patient.registrationDate = appointment.appointmentDate;
+          }
+        } else {
+          // Create new patient
+          const key = createPatientKey(appointment.patientName, appointment.patientPhone, appointment.patientEmail);
+          console.log(`Creating new patient: ${appointment.patientName} with key: ${key}`);
+          
           patientMap.set(key, {
             id: appointment.id,
             patientName: appointment.patientName,
@@ -112,45 +198,96 @@ export default function PatientsPage() {
             appointments: [appointment],
             queueEntries: []
           });
-        } else {
-          const patient = patientMap.get(key)!;
-          patient.appointments.push(appointment);
-          patient.totalVisits++;
-          
-          // Update last visit date if this appointment is more recent
-          if (new Date(appointment.appointmentDate) > new Date(patient.lastVisitDate || '')) {
-            patient.lastVisitDate = appointment.appointmentDate;
-          }
-          
-          // Update registration date if this appointment is older
-          if (new Date(appointment.appointmentDate) < new Date(patient.registrationDate)) {
-            patient.registrationDate = appointment.appointmentDate;
-          }
         }
       });
       
-      // Process queue entries
-      queueEntries.forEach((queueEntry: any) => {
-        const key = queueEntry.patientPhone || queueEntry.patientName;
+      // Second pass: process queue entries
+      console.log('Processing queue entries...');
+      queueEntries.forEach((queueEntry: any, index: number) => {
+        console.log(`Processing queue entry ${index + 1}:`, {
+          name: queueEntry.patientName,
+          phone: queueEntry.patientPhone,
+          email: queueEntry.patientEmail
+        });
         
-        if (!patientMap.has(key)) {
+        // Try to find existing patient first
+        const existing = findExistingPatient(
+          queueEntry.patientName, 
+          queueEntry.patientPhone, 
+          queueEntry.patientEmail
+        );
+        
+        if (existing) {
+          console.log(`Found existing patient: ${existing.patient.patientName}, adding queue entry`);
+          // Add to existing patient
+          if (!existing.patient.queueEntries) {
+            existing.patient.queueEntries = [];
+          }
+          existing.patient.queueEntries.push(queueEntry);
+          
+          // Update contact info if missing
+          if (!existing.patient.patientPhone && queueEntry.patientPhone) {
+            existing.patient.patientPhone = queueEntry.patientPhone;
+          }
+          if (!existing.patient.patientEmail && queueEntry.patientEmail) {
+            existing.patient.patientEmail = queueEntry.patientEmail;
+          }
+        } else {
+          // Create new patient from queue entry
+          const key = createPatientKey(queueEntry.patientName, queueEntry.patientPhone, queueEntry.patientEmail);
+          console.log(`Creating new patient from queue: ${queueEntry.patientName} with key: ${key}`);
+          
           patientMap.set(key, {
             id: queueEntry.id,
             patientName: queueEntry.patientName,
             patientPhone: queueEntry.patientPhone,
+            patientEmail: queueEntry.patientEmail,
             registrationDate: queueEntry.arrivalTime,
+            lastVisitDate: queueEntry.arrivalTime,
             totalVisits: 1,
             appointments: [],
             queueEntries: [queueEntry]
           });
-        } else {
-          const patient = patientMap.get(key)!;
-          patient.queueEntries.push(queueEntry);
         }
       });
       
       const patientsArray = Array.from(patientMap.values());
+      
+      // Debug logging to understand the discrepancy
+      console.log('=== PATIENT AGGREGATION DEBUG ===');
+      console.log('Total appointments:', appointments.length);
+      console.log('Total queue entries:', queueEntries.length);
+      console.log('Unique patients found:', patientsArray.length);
+      console.log('Appointments per patient:');
+      patientsArray.forEach((patient, index) => {
+        console.log(`${index + 1}. ${patient.patientName}: ${patient.appointments.length} appointments, ${patient.queueEntries?.length || 0} queue entries`);
+        console.log(`   - Phone: ${patient.patientPhone}`);
+        console.log(`   - Email: ${patient.patientEmail || 'None'}`);
+        console.log(`   - ID: ${patient.id}`);
+      });
+      console.log('Raw appointments data:', appointments.map((apt: any) => ({
+        id: apt.id,
+        name: apt.patientName,
+        phone: apt.patientPhone,
+        email: apt.patientEmail
+      })));
+      console.log('Raw queue data:', queueEntries.map((queue: any) => ({
+        id: queue.id,
+        name: queue.patientName,
+        phone: queue.patientPhone,
+        email: queue.patientEmail
+      })));
+      console.log('Final patient map keys:', Array.from(patientMap.keys()));
+      console.log('Final patients array length:', patientsArray.length);
+      console.log('================================');
+      
       setPatients(patientsArray);
+      
+      // Additional debug after setting patients
+      console.log('=== AFTER SETTING PATIENTS ===');
+      console.log('Patients state will be set to:', patientsArray.length, 'patients');
+      console.log('All patient names:', patientsArray.map(p => p.patientName));
+      console.log('==============================');
       
     } catch (error) {
       console.error('Error fetching patient records:', error);
@@ -177,14 +314,33 @@ export default function PatientsPage() {
       
       // Date range filter
       let dateMatch = true;
-      if (filters.dateRange.startDate) {
-        dateMatch = dateMatch && new Date(patient.registrationDate) >= new Date(filters.dateRange.startDate);
+      if (filters.dateRange.startDate && filters.dateRange.startDate.trim()) {
+        const startDate = new Date(filters.dateRange.startDate);
+        const regDate = new Date(patient.registrationDate);
+        dateMatch = dateMatch && regDate >= startDate;
       }
-      if (filters.dateRange.endDate) {
-        dateMatch = dateMatch && new Date(patient.registrationDate) <= new Date(filters.dateRange.endDate);
+      if (filters.dateRange.endDate && filters.dateRange.endDate.trim()) {
+        const endDate = new Date(filters.dateRange.endDate);
+        endDate.setHours(23, 59, 59, 999); // Include the entire end date
+        const regDate = new Date(patient.registrationDate);
+        dateMatch = dateMatch && regDate <= endDate;
       }
       
-      return searchMatch && nameMatch && locationMatch && dateMatch;
+      const finalMatch = searchMatch && nameMatch && locationMatch && dateMatch;
+      
+      // Debug logging for filtering
+      if (!finalMatch) {
+        console.log(`Patient ${patient.patientName} filtered out:`, {
+          searchMatch,
+          nameMatch,
+          locationMatch,
+          dateMatch,
+          searchTerm,
+          filters
+        });
+      }
+      
+      return finalMatch;
     })
     .sort((a, b) => {
       let aValue, bValue;
@@ -215,6 +371,15 @@ export default function PatientsPage() {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
+
+  // Debug the filtering process
+  console.log('=== FILTERING DEBUG ===');
+  console.log('Total patients before filtering:', patients.length);
+  console.log('Total patients after filtering:', filteredAndSortedPatients.length);
+  console.log('Search term:', searchTerm);
+  console.log('Filters:', filters);
+  console.log('Filtered patient names:', filteredAndSortedPatients.map(p => p.patientName));
+  console.log('======================');
 
   const handleExportCSV = () => {
     const csvData = filteredAndSortedPatients.map(patient => ({
@@ -304,7 +469,7 @@ export default function PatientsPage() {
 
   const resetFilters = () => {
     setFilters({
-      dateRange: { startDate: '', endDate: new Date().toISOString().split('T')[0] },
+      dateRange: { startDate: '', endDate: '' }, // Remove default end date
       name: '',
       location: '',
       sortBy: 'registrationDate',
@@ -323,10 +488,10 @@ export default function PatientsPage() {
         >
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Patient Records
+              Patient Records & Registry
             </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Comprehensive patient database with detailed records and analytics
+              Comprehensive patient database with appointment and visit history
             </p>
           </div>
           
@@ -566,6 +731,53 @@ export default function PatientsPage() {
           />
         </motion.div>
 
+        {/* Summary Stats */}
+        {!loading && patients.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          >
+            <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 p-6 rounded-2xl shadow-lg border border-purple-100 dark:border-purple-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Patients</p>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{patients.length}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">All patient records</p>
+                </div>
+                <Users className="h-8 w-8 text-purple-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 p-6 rounded-2xl shadow-lg border border-purple-100 dark:border-purple-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">From Appointments</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {patients.filter(p => p.appointments.length > 0).length}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">Scheduled consultations</p>
+                </div>
+                <Calendar className="h-8 w-8 text-emerald-600" />
+              </div>
+            </div>
+            
+            <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 p-6 rounded-2xl shadow-lg border border-purple-100 dark:border-purple-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">From Queue</p>
+                  <p className="text-2xl font-bold text-pink-600 dark:text-pink-400">
+                    {patients.filter(p => p.queueEntries.length > 0).length}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">Walk-in visits</p>
+                </div>
+                <Clock className="h-8 w-8 text-pink-600" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Patient Records Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -578,7 +790,7 @@ export default function PatientsPage() {
               Patient Database
             </h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {loading ? 'Loading...' : `${filteredAndSortedPatients.length} patients found`}
+              {loading ? 'Loading...' : `${filteredAndSortedPatients.length} patients found (from appointments and queue records)`}
             </p>
           </div>
           
@@ -608,6 +820,9 @@ export default function PatientsPage() {
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Contact
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Source
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                       Registration
@@ -658,6 +873,22 @@ export default function PatientsPage() {
                               <Mail className="h-3 w-3 mr-1" />
                               {patient.patientEmail}
                             </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-wrap gap-1">
+                          {patient.appointments.length > 0 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              Appointments ({patient.appointments.length})
+                            </span>
+                          )}
+                          {patient.queueEntries.length > 0 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200">
+                              <Clock className="h-3 w-3 mr-1" />
+                              Queue ({patient.queueEntries.length})
+                            </span>
                           )}
                         </div>
                       </td>
