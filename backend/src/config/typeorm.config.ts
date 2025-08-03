@@ -21,7 +21,8 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
         type: 'postgres',
         url: databaseUrl,
         entities: [User, Doctor, Appointment, QueueItem],
-        synchronize: nodeEnv === 'development',
+        synchronize: nodeEnv === 'development', // Only sync in development
+        migrationsRun: nodeEnv === 'production', // Run migrations in production
         logging: nodeEnv === 'development',
         ssl: {
           rejectUnauthorized: false,
