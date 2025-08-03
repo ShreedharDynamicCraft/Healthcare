@@ -16,10 +16,12 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Security middleware
-  app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  }));
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
 
   // Compression middleware
   app.use(compression());
@@ -53,14 +55,16 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-      disableErrorMessages: configService.get<string>('NODE_ENV') === 'production',
+      disableErrorMessages:
+        configService.get<string>('NODE_ENV') === 'production',
     }),
   );
 
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Clinic Front Desk API')
-    .setDescription(`
+    .setDescription(
+      `
       🏥 **Sexual Well-being Clinic Front Desk Management System**
       
       A comprehensive API for managing clinic front desk operations including:
@@ -79,7 +83,8 @@ async function bootstrap() {
       **Default Admin Credentials:**
       - Email: admin@clinic.com
       - Password: AdminPass123!
-    `)
+    `,
+    )
     .setVersion('1.0.0')
     .addBearerAuth(
       {
@@ -118,9 +123,9 @@ async function bootstrap() {
 
   const port = configService.get<number>('PORT', 3001);
   const nodeEnv = configService.get<string>('NODE_ENV', 'development');
-  
+
   await app.listen(port, '0.0.0.0');
-  
+
   // Create default admin user
   try {
     const authService = app.get(AuthService);
@@ -128,12 +133,14 @@ async function bootstrap() {
   } catch (error) {
     logger.error('Failed to create default admin user:', error);
   }
-  
+
   logger.log(`🚀 Application is running on: http://localhost:${port}`);
   logger.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
   logger.log(`🏥 Health Check: http://localhost:${port}/api/v1/health`);
   logger.log(`🔧 Environment: ${nodeEnv}`);
-  logger.log(`🌐 CORS Origin: ${configService.get<string>('CORS_ORIGIN', 'http://localhost:3000')}`);
+  logger.log(
+    `🌐 CORS Origin: ${configService.get<string>('CORS_ORIGIN', 'http://localhost:3000')}`,
+  );
 }
 
-bootstrap(); 
+bootstrap();

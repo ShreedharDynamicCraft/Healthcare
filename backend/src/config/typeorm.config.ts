@@ -13,7 +13,7 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
   createTypeOrmOptions(): TypeOrmModuleOptions {
     const databaseUrl = this.configService.get<string>('DATABASE_URL');
     const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
-    
+
     // Use PostgreSQL if DATABASE_URL is provided, otherwise fallback to SQLite
     if (databaseUrl && databaseUrl.length > 0) {
       // PostgreSQL configuration
@@ -38,4 +38,4 @@ export class TypeOrmConfigService implements TypeOrmOptionsFactory {
       logging: nodeEnv === 'development',
     };
   }
-} 
+}

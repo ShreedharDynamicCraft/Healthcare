@@ -9,10 +9,19 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { DoctorsService } from './doctors.service';
-import { CreateDoctorDto, UpdateDoctorDto, FilterDoctorsDto } from './dto/doctor.dto';
+import {
+  CreateDoctorDto,
+  UpdateDoctorDto,
+  FilterDoctorsDto,
+} from './dto/doctor.dto';
 import { Doctor, DoctorStatus } from './entities/doctor.entity';
 
 @ApiTags('Doctors')
@@ -24,8 +33,15 @@ export class DoctorsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new doctor' })
-  @ApiResponse({ status: 201, description: 'Doctor created successfully', type: Doctor })
-  @ApiResponse({ status: 409, description: 'Doctor with this email already exists' })
+  @ApiResponse({
+    status: 201,
+    description: 'Doctor created successfully',
+    type: Doctor,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Doctor with this email already exists',
+  })
   create(@Body() createDoctorDto: CreateDoctorDto): Promise<Doctor> {
     return this.doctorsService.create(createDoctorDto);
   }
@@ -39,14 +55,21 @@ export class DoctorsController {
 
   @Get('available')
   @ApiOperation({ summary: 'Get all available doctors' })
-  @ApiResponse({ status: 200, description: 'Available doctors retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Available doctors retrieved successfully',
+  })
   getAvailableDoctors(): Promise<Doctor[]> {
     return this.doctorsService.getAvailableDoctors();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a doctor by ID' })
-  @ApiResponse({ status: 200, description: 'Doctor retrieved successfully', type: Doctor })
+  @ApiResponse({
+    status: 200,
+    description: 'Doctor retrieved successfully',
+    type: Doctor,
+  })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
   findOne(@Param('id') id: string): Promise<Doctor> {
     return this.doctorsService.findOne(id);
@@ -54,16 +77,30 @@ export class DoctorsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a doctor' })
-  @ApiResponse({ status: 200, description: 'Doctor updated successfully', type: Doctor })
+  @ApiResponse({
+    status: 200,
+    description: 'Doctor updated successfully',
+    type: Doctor,
+  })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
-  @ApiResponse({ status: 409, description: 'Doctor with this email already exists' })
-  update(@Param('id') id: string, @Body() updateDoctorDto: UpdateDoctorDto): Promise<Doctor> {
+  @ApiResponse({
+    status: 409,
+    description: 'Doctor with this email already exists',
+  })
+  update(
+    @Param('id') id: string,
+    @Body() updateDoctorDto: UpdateDoctorDto,
+  ): Promise<Doctor> {
     return this.doctorsService.update(id, updateDoctorDto);
   }
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update doctor status' })
-  @ApiResponse({ status: 200, description: 'Doctor status updated successfully', type: Doctor })
+  @ApiResponse({
+    status: 200,
+    description: 'Doctor status updated successfully',
+    type: Doctor,
+  })
   @ApiResponse({ status: 404, description: 'Doctor not found' })
   updateStatus(
     @Param('id') id: string,
@@ -79,4 +116,4 @@ export class DoctorsController {
   remove(@Param('id') id: string): Promise<void> {
     return this.doctorsService.remove(id);
   }
-} 
+}

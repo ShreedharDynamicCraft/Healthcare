@@ -95,4 +95,4 @@ export class QueueItem {
     const arrival = new Date(this.arrivalTime);
     return Math.floor((now.getTime() - arrival.getTime()) / (1000 * 60)); // minutes
   }
-} 
+}

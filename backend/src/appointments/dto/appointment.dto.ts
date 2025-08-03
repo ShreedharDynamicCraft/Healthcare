@@ -1,6 +1,16 @@
-import { IsString, IsDateString, IsEnum, IsOptional, IsBoolean, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { AppointmentStatus, AppointmentType } from '../entities/appointment.entity';
+import {
+  AppointmentStatus,
+  AppointmentType,
+} from '../entities/appointment.entity';
 
 export class CreateAppointmentDto {
   @ApiProperty({ example: 'John Doe' })
@@ -16,7 +26,10 @@ export class CreateAppointmentDto {
   @IsString()
   patientEmail?: string;
 
-  @ApiProperty({ example: 'Patient has allergies to penicillin', required: false })
+  @ApiProperty({
+    example: 'Patient has allergies to penicillin',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   patientNotes?: string;
@@ -68,7 +81,10 @@ export class UpdateAppointmentDto {
   @IsString()
   patientEmail?: string;
 
-  @ApiProperty({ example: 'Patient has allergies to penicillin', required: false })
+  @ApiProperty({
+    example: 'Patient has allergies to penicillin',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   patientNotes?: string;
@@ -142,4 +158,4 @@ export class FilterAppointmentsDto {
   @ApiProperty({ required: false, default: 10 })
   @IsOptional()
   limit?: number = 10;
-} 
+}

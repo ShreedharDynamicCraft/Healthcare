@@ -5,15 +5,15 @@ import { SeedingService } from '../seeding/seeding.service';
 
 async function runSeeding() {
   const logger = new Logger('Seeding');
-  
+
   try {
     logger.log('🌱 Starting database seeding...');
-    
+
     const app = await NestFactory.createApplicationContext(AppModule);
     const seedingService = app.get(SeedingService);
-    
+
     await seedingService.seedAll();
-    
+
     await app.close();
     logger.log('✅ Database seeding completed successfully!');
     process.exit(0);

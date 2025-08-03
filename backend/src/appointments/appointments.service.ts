@@ -1,8 +1,20 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
-import { Appointment, AppointmentStatus, AppointmentType } from './entities/appointment.entity';
-import { CreateAppointmentDto, UpdateAppointmentDto, FilterAppointmentsDto } from './dto/appointment.dto';
+import { Repository } from 'typeorm';
+import {
+  Appointment,
+  AppointmentStatus,
+  AppointmentType,
+} from './entities/appointment.entity';
+import {
+  CreateAppointmentDto,
+  UpdateAppointmentDto,
+  FilterAppointmentsDto,
+} from './dto/appointment.dto';
 import { DoctorsService } from '../doctors/doctors.service';
 import { Not } from 'typeorm';
 
@@ -14,11 +26,14 @@ export class AppointmentsService {
     private doctorsService: DoctorsService,
   ) {}
 
-  async create(createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
-    const { doctorId, appointmentDate, startTime, endTime } = createAppointmentDto;
+  async create(
+    createAppointmentDto: CreateAppointmentDto,
+  ): Promise<Appointment> {
+    const { doctorId, appointmentDate, startTime, endTime } =
+      createAppointmentDto;
 
-    // Check if doctor exists
-    const doctor = await this.doctorsService.findOne(doctorId);
+    // Check if doctor exists and verify availability
+    await this.doctorsService.findOne(doctorId);
 
     // Check for scheduling conflicts - check for time overlaps
     const conflictingAppointments = await this.appointmentRepository.find({
@@ -30,10 +45,10 @@ export class AppointmentsService {
     });
 
     // Check if any existing appointment overlaps with the new appointment
-    const hasConflict = conflictingAppointments.some(existingAppointment => {
+    const hasConflict = conflictingAppointments.some((existingAppointment) => {
       const existingStart = existingAppointment.startTime;
       const existingEnd = existingAppointment.endTime;
-      
+
       // Check if the new appointment overlaps with any existing appointment
       // Overlap occurs if:
       // 1. New start time is before existing end time AND new end time is after existing start time
@@ -45,7 +60,9 @@ export class AppointmentsService {
     });
 
     if (hasConflict) {
-      throw new ConflictException('Doctor has a conflicting appointment at this time');
+      throw new ConflictException(
+        'Doctor has a conflicting appointment at this time',
+      );
     }
 
     const appointment = this.appointmentRepository.create({
@@ -56,15 +73,27 @@ export class AppointmentsService {
     return this.appointmentRepository.save(appointment);
   }
 
-  async findAll(filterDto: FilterAppointmentsDto = {}): Promise<{ appointments: any[]; total: number }> {
-    const { patientName, doctorId, status, date, page = 1, limit = 10 } = filterDto;
+  async findAll(
+    filterDto: FilterAppointmentsDto = {},
+  ): Promise<{ appointments: any[]; total: number }> {
+    const {
+      patientName,
+      doctorId,
+      status,
+      date,
+      page = 1,
+      limit = 10,
+    } = filterDto;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.appointmentRepository.createQueryBuilder('appointment')
+    const queryBuilder = this.appointmentRepository
+      .createQueryBuilder('appointment')
       .leftJoinAndSelect('appointment.doctor', 'doctor');
 
     if (patientName) {
-      queryBuilder.andWhere('appointment.patientName ILIKE :patientName', { patientName: `%${patientName}%` });
+      queryBuilder.andWhere('appointment.patientName ILIKE :patientName', {
+        patientName: `%${patientName}%`,
+      });
     }
 
     if (doctorId) {
@@ -79,11 +108,14 @@ export class AppointmentsService {
       const startOfDay = new Date(date);
       const endOfDay = new Date(date);
       endOfDay.setDate(endOfDay.getDate() + 1);
-      
-      queryBuilder.andWhere('appointment.appointmentDate BETWEEN :startDate AND :endDate', {
-        startDate: startOfDay,
-        endDate: endOfDay,
-      });
+
+      queryBuilder.andWhere(
+        'appointment.appointmentDate BETWEEN :startDate AND :endDate',
+        {
+          startDate: startOfDay,
+          endDate: endOfDay,
+        },
+      );
     }
 
     const [appointments, total] = await queryBuilder
@@ -94,9 +126,11 @@ export class AppointmentsService {
       .getManyAndCount();
 
     // Transform appointments to include doctorName
-    const transformedAppointments = appointments.map(appointment => ({
+    const transformedAppointments = appointments.map((appointment) => ({
       ...appointment,
-      doctorName: appointment.doctor ? `${appointment.doctor.firstName} ${appointment.doctor.lastName}` : 'Unknown Doctor'
+      doctorName: appointment.doctor
+        ? `${appointment.doctor.firstName} ${appointment.doctor.lastName}`
+        : 'Unknown Doctor',
     }));
 
     return { appointments: transformedAppointments, total };
@@ -115,18 +149,26 @@ export class AppointmentsService {
     // Transform appointment to include doctorName
     return {
       ...appointment,
-      doctorName: appointment.doctor ? `${appointment.doctor.firstName} ${appointment.doctor.lastName}` : 'Unknown Doctor'
+      doctorName: appointment.doctor
+        ? `${appointment.doctor.firstName} ${appointment.doctor.lastName}`
+        : 'Unknown Doctor',
     };
   }
 
-  async update(id: string, updateAppointmentDto: UpdateAppointmentDto): Promise<Appointment> {
+  async update(
+    id: string,
+    updateAppointmentDto: UpdateAppointmentDto,
+  ): Promise<Appointment> {
     const appointment = await this.findOne(id);
 
     // Check for conflicts if time/date is being updated
-    if (updateAppointmentDto.appointmentDate || updateAppointmentDto.startTime || updateAppointmentDto.endTime) {
-      const appointmentDate = updateAppointmentDto.appointmentDate || appointment.appointmentDate;
-      const startTime = updateAppointmentDto.startTime || appointment.startTime;
-      const endTime = updateAppointmentDto.endTime || appointment.endTime;
+    if (
+      updateAppointmentDto.appointmentDate ||
+      updateAppointmentDto.startTime ||
+      updateAppointmentDto.endTime
+    ) {
+      const appointmentDate =
+        updateAppointmentDto.appointmentDate || appointment.appointmentDate;
 
       const conflictingAppointment = await this.appointmentRepository.findOne({
         where: {
@@ -138,7 +180,9 @@ export class AppointmentsService {
       });
 
       if (conflictingAppointment) {
-        throw new ConflictException('Doctor has a conflicting appointment at this time');
+        throw new ConflictException(
+          'Doctor has a conflicting appointment at this time',
+        );
       }
     }
 
@@ -151,7 +195,10 @@ export class AppointmentsService {
     await this.appointmentRepository.remove(appointment);
   }
 
-  async updateStatus(id: string, status: AppointmentStatus): Promise<Appointment> {
+  async updateStatus(
+    id: string,
+    status: AppointmentStatus,
+  ): Promise<Appointment> {
     const appointment = await this.findOne(id);
     appointment.status = status;
     return this.appointmentRepository.save(appointment);
@@ -160,9 +207,17 @@ export class AppointmentsService {
   async getAvailableSlots(doctorId: string, date: string): Promise<string[]> {
     const doctor = await this.doctorsService.findOne(doctorId);
     const appointmentDate = new Date(date);
-    
+
     // Get doctor's availability for the day
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const days = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
     const dayOfWeek = days[appointmentDate.getDay()];
     const availability = doctor.availability[dayOfWeek];
 
@@ -186,23 +241,28 @@ export class AppointmentsService {
 
     while (startTime < endTime) {
       const slotTime = startTime.toTimeString().slice(0, 5);
-      
+
       // Check if slot is available by checking if any appointment overlaps with this slot
-      const isBooked = existingAppointments.some(appointment => {
+      const isBooked = existingAppointments.some((appointment) => {
         const appointmentStart = appointment.startTime;
         const appointmentEnd = appointment.endTime;
-        
+
         // Normalize time formats - remove seconds if present
-        const normalizedAppointmentStart = appointmentStart.split(':').slice(0, 2).join(':');
+        const normalizedAppointmentStart = appointmentStart
+          .split(':')
+          .slice(0, 2)
+          .join(':');
         const normalizedSlotTime = slotTime;
-        
+
         // Check if the slot overlaps with any existing appointment
         // Only block the start time slot, not the end time slot
         const booked = normalizedSlotTime === normalizedAppointmentStart;
-        
+
         // Debug logging
-        console.log(`Slot: ${normalizedSlotTime}, Appointment: ${normalizedAppointmentStart}-${appointmentEnd}, Booked: ${booked}`);
-        
+        console.log(
+          `Slot: ${normalizedSlotTime}, Appointment: ${normalizedAppointmentStart}-${appointmentEnd}, Booked: ${booked}`,
+        );
+
         return booked;
       });
 
@@ -272,4 +332,4 @@ export class AppointmentsService {
 
     console.log('Sample appointments created');
   }
-} 
+}

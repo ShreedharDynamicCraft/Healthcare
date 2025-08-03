@@ -22,7 +22,8 @@ import {
   FileText,
   Bell,
   ChevronDown,
-  Activity
+  Activity,
+  HelpCircle
 } from 'lucide-react';
 
 const navigation = [
@@ -65,20 +66,20 @@ const navigation = [
     name: 'Analytics', 
     icon: BarChart3, 
     description: 'Reports & insights', 
-    href: '/dashboard',
+    href: '/dashboard/analytics',
     section: 'admin'
   },
   { 
-    name: 'User Management', 
-    icon: UserPlus, 
-    description: 'Staff & access', 
-    href: '/dashboard',
+    name: 'Help & Guide', 
+    icon: HelpCircle, 
+    description: 'System documentation', 
+    href: '/dashboard/help',
     section: 'admin'
   },
   { 
     name: 'Settings', 
     icon: Settings, 
-    description: 'System config', 
+    description: 'System config backend', 
     href: '/dashboard',
     section: 'admin'
   },
@@ -281,7 +282,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <img 
                   src="https://www.allohealth.com/assets/lovable-uploads/allo-logo-v1.svg" 
                   alt="Allo Health" 
-                  className="w-6 h-6 object-contain"
+  className="w-10 h-10 object-contain dark:invert"
                 />
               </div>
               <div>

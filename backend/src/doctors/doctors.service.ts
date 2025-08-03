@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, ILike } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Doctor, DoctorStatus } from './entities/doctor.entity';
-import { CreateDoctorDto, UpdateDoctorDto, FilterDoctorsDto } from './dto/doctor.dto';
+import {
+  CreateDoctorDto,
+  UpdateDoctorDto,
+  FilterDoctorsDto,
+} from './dto/doctor.dto';
 
 @Injectable()
 export class DoctorsService {
@@ -25,8 +33,17 @@ export class DoctorsService {
     return this.doctorRepository.save(doctor);
   }
 
-  async findAll(filterDto: FilterDoctorsDto = {}): Promise<{ doctors: Doctor[]; total: number }> {
-    const { search, specialization, status, location, page = 1, limit = 10 } = filterDto;
+  async findAll(
+    filterDto: FilterDoctorsDto = {},
+  ): Promise<{ doctors: Doctor[]; total: number }> {
+    const {
+      search,
+      specialization,
+      status,
+      location,
+      page = 1,
+      limit = 10,
+    } = filterDto;
     const skip = (page - 1) * limit;
 
     const queryBuilder = this.doctorRepository.createQueryBuilder('doctor');
@@ -39,7 +56,9 @@ export class DoctorsService {
     }
 
     if (specialization) {
-      queryBuilder.andWhere('doctor.specialization = :specialization', { specialization });
+      queryBuilder.andWhere('doctor.specialization = :specialization', {
+        specialization,
+      });
     }
 
     if (status) {
@@ -47,7 +66,9 @@ export class DoctorsService {
     }
 
     if (location) {
-      queryBuilder.andWhere('doctor.location ILIKE :location', { location: `%${location}%` });
+      queryBuilder.andWhere('doctor.location ILIKE :location', {
+        location: `%${location}%`,
+      });
     }
 
     queryBuilder.andWhere('doctor.isActive = :isActive', { isActive: true });
@@ -208,4 +229,4 @@ export class DoctorsService {
 
     console.log('Sample doctors created');
   }
-} 
+}

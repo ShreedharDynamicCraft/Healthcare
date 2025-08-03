@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: healthcare_db
+    environment:
+      POSTGRES_DB: clinic_db
+      POSTGRES_USER: clinic_user
+      POSTGRES_PASSWORD: clinic_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthcare_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: healthcare_backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://clinic_user:clinic_password@database:5432/clinic_db
+      JWT_SECRET: your-super-secure-jwt-secret-change-in-production
+      CORS_ORIGIN: http://localhost:3000
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - database
+    networks:
+      - healthcare_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: healthcare_frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3002/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - healthcare_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  healthcare_network:
+    driver: bridge

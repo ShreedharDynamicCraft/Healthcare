@@ -13,8 +13,8 @@ export enum DoctorSpecialization {
   SEXUAL_WELLNESS = 'Sexual Wellness Counselor',
   REPRODUCTIVE_HEALTH = 'Reproductive Health Expert',
   RELATIONSHIP_THERAPY = 'Relationship Therapist',
-  WOMENS_HEALTH = 'Women\'s Health Specialist',
-  MENS_HEALTH = 'Men\'s Health Specialist',
+  WOMENS_HEALTH = "Women's Health Specialist",
+  MENS_HEALTH = "Men's Health Specialist",
   LGBTQ_HEALTH = 'LGBTQ+ Health Advocate',
   FERTILITY = 'Fertility Specialist',
   HORMONAL_HEALTH = 'Hormonal Health Expert',
@@ -107,12 +107,21 @@ export class Doctor {
 
   get nextAvailableTime(): string {
     const now = new Date();
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const days = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
     const currentDay = days[now.getDay()];
     const currentTime = now.toTimeString().slice(0, 5);
 
-    const todayAvailability = this.availability[currentDay as keyof typeof this.availability];
-    
+    const todayAvailability =
+      this.availability[currentDay as keyof typeof this.availability];
+
     if (!todayAvailability.available) {
       return 'Not available today';
     }
@@ -121,10 +130,13 @@ export class Doctor {
       return `Today at ${todayAvailability.start}`;
     }
 
-    if (currentTime >= todayAvailability.start && currentTime < todayAvailability.end) {
+    if (
+      currentTime >= todayAvailability.start &&
+      currentTime < todayAvailability.end
+    ) {
       return 'Now';
     }
 
     return 'Not available today';
   }
-} 
+}

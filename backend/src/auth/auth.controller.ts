@@ -1,31 +1,31 @@
-import { 
-  Controller, 
-  Post, 
-  Body, 
-  HttpCode, 
-  HttpStatus, 
-  UseGuards, 
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
   Get,
   Patch,
   Param,
   Request,
   Delete,
-  ValidationPipe
+  ValidationPipe,
 } from '@nestjs/common';
-import { 
-  ApiTags, 
-  ApiOperation, 
-  ApiResponse, 
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
   ApiBearerAuth,
-  ApiParam
+  ApiParam,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { 
-  LoginDto, 
-  RegisterDto, 
-  AuthResponseDto, 
+import {
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
   UserResponseDto,
-  ChangePasswordDto 
+  ChangePasswordDto,
 } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
@@ -36,64 +36,70 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Login user',
-    description: 'Authenticate user with email and password. Returns JWT token for subsequent requests.'
+    description:
+      'Authenticate user with email and password. Returns JWT token for subsequent requests.',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Login successful', 
-    type: AuthResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: 'Login successful',
+    type: AuthResponseDto,
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Invalid credentials' 
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Account locked due to multiple failed attempts' 
+  @ApiResponse({
+    status: 403,
+    description: 'Account locked due to multiple failed attempts',
   })
-  async login(@Body(ValidationPipe) loginDto: LoginDto): Promise<AuthResponseDto> {
+  async login(
+    @Body(ValidationPipe) loginDto: LoginDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
   }
 
   @Post('register')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Register new user',
-    description: 'Create a new user account. Only staff role can be created via this endpoint.'
+    description:
+      'Create a new user account. Only staff role can be created via this endpoint.',
   })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'User registered successfully', 
-    type: AuthResponseDto 
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    type: AuthResponseDto,
   })
-  @ApiResponse({ 
-    status: 409, 
-    description: 'User already exists' 
+  @ApiResponse({
+    status: 409,
+    description: 'User already exists',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Validation error' 
+  @ApiResponse({
+    status: 400,
+    description: 'Validation error',
   })
-  async register(@Body(ValidationPipe) registerDto: RegisterDto): Promise<AuthResponseDto> {
+  async register(
+    @Body(ValidationPipe) registerDto: RegisterDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.register(registerDto);
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get user profile',
-    description: 'Get current authenticated user profile information'
+    description: 'Get current authenticated user profile information',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User profile retrieved successfully', 
-    type: UserResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+    type: UserResponseDto,
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
   async getProfile(@Request() req): Promise<UserResponseDto> {
     return this.authService.getUserProfile(req.user.sub);
@@ -102,22 +108,22 @@ export class AuthController {
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Update user profile',
-    description: 'Update current authenticated user profile information'
+    description: 'Update current authenticated user profile information',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User profile updated successfully', 
-    type: UserResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: 'User profile updated successfully',
+    type: UserResponseDto,
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
   async updateProfile(
-    @Request() req, 
-    @Body() updateData: Partial<UserResponseDto>
+    @Request() req,
+    @Body() updateData: Partial<UserResponseDto>,
   ): Promise<UserResponseDto> {
     return this.authService.updateUserProfile(req.user.sub, updateData);
   }
@@ -126,25 +132,25 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Change password',
-    description: 'Change current authenticated user password'
+    description: 'Change current authenticated user password',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Password changed successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'Password changed successfully',
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Current password is incorrect' 
+  @ApiResponse({
+    status: 400,
+    description: 'Current password is incorrect',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
   async changePassword(
     @Request() req,
-    @Body(ValidationPipe) changePasswordDto: ChangePasswordDto
+    @Body(ValidationPipe) changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     await this.authService.changePassword(req.user.sub, changePasswordDto);
     return { message: 'Password changed successfully' };
@@ -153,22 +159,23 @@ export class AuthController {
   @Get('users')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Get all users (Admin only)',
-    description: 'Retrieve list of all users in the system. Admin access required.'
+    description:
+      'Retrieve list of all users in the system. Admin access required.',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Users retrieved successfully', 
-    type: [UserResponseDto] 
+  @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully',
+    type: [UserResponseDto],
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Admin access required' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
   })
   async getAllUsers(): Promise<UserResponseDto[]> {
     return this.authService.getAllUsers();
@@ -177,28 +184,30 @@ export class AuthController {
   @Delete('users/:id/deactivate')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Deactivate user (Admin only)',
-    description: 'Deactivate a user account. Admin access required.'
+    description: 'Deactivate a user account. Admin access required.',
   })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User deactivated successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User deactivated successfully',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Admin access required' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  async deactivateUser(@Param('id') userId: string): Promise<{ message: string }> {
+  async deactivateUser(
+    @Param('id') userId: string,
+  ): Promise<{ message: string }> {
     await this.authService.deactivateUser(userId);
     return { message: 'User deactivated successfully' };
   }
@@ -206,43 +215,45 @@ export class AuthController {
   @Post('users/:id/activate')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Activate user (Admin only)',
-    description: 'Activate a deactivated user account. Admin access required.'
+    description: 'Activate a deactivated user account. Admin access required.',
   })
   @ApiParam({ name: 'id', description: 'User ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'User activated successfully' 
+  @ApiResponse({
+    status: 200,
+    description: 'User activated successfully',
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
   })
-  @ApiResponse({ 
-    status: 403, 
-    description: 'Forbidden - Admin access required' 
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Admin access required',
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: 'User not found' 
+  @ApiResponse({
+    status: 404,
+    description: 'User not found',
   })
-  async activateUser(@Param('id') userId: string): Promise<{ message: string }> {
+  async activateUser(
+    @Param('id') userId: string,
+  ): Promise<{ message: string }> {
     await this.authService.activateUser(userId);
     return { message: 'User activated successfully' };
   }
 
   @Post('create-admin')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Create default admin user',
-    description: 'Create default admin user for initial system setup'
+    description: 'Create default admin user for initial system setup',
   })
-  @ApiResponse({ 
-    status: 201, 
-    description: 'Admin user created successfully' 
+  @ApiResponse({
+    status: 201,
+    description: 'Admin user created successfully',
   })
   async createAdmin(): Promise<{ message: string }> {
     await this.authService.createDefaultAdmin();
     return { message: 'Default admin user created successfully' };
   }
-} 
+}

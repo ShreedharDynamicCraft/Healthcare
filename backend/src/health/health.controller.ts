@@ -5,12 +5,12 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('health')
 export class HealthController {
   @Get()
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Health check',
-    description: 'Check if the API is running and healthy'
+    description: 'Check if the API is running and healthy',
   })
-  @ApiResponse({ 
-    status: 200, 
+  @ApiResponse({
+    status: 200,
     description: 'API is healthy',
     schema: {
       type: 'object',
@@ -35,13 +35,13 @@ export class HealthController {
   }
 
   @Get('ready')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Readiness check',
-    description: 'Check if the API is ready to receive requests'
+    description: 'Check if the API is ready to receive requests',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'API is ready'
+  @ApiResponse({
+    status: 200,
+    description: 'API is ready',
   })
   getReadiness() {
     return {
@@ -51,13 +51,13 @@ export class HealthController {
   }
 
   @Get('live')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Liveness check',
-    description: 'Check if the API is alive'
+    description: 'Check if the API is alive',
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'API is alive'
+  @ApiResponse({
+    status: 200,
+    description: 'API is alive',
   })
   getLiveness() {
     return {

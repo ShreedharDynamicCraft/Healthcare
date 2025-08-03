@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QueueItem, QueueStatus, QueuePriority } from './entities/queue-item.entity';
+import {
+  QueueItem,
+  QueueStatus,
+  QueuePriority,
+} from './entities/queue-item.entity';
 
 @Injectable()
 export class QueueService {
@@ -65,7 +69,10 @@ export class QueueService {
     return this.queueItemRepository.save(queueItem);
   }
 
-  async updatePriority(id: string, priority: QueuePriority): Promise<QueueItem> {
+  async updatePriority(
+    id: string,
+    priority: QueuePriority,
+  ): Promise<QueueItem> {
     const queueItem = await this.findOne(id);
     queueItem.priority = priority;
     return this.queueItemRepository.save(queueItem);
@@ -84,9 +91,15 @@ export class QueueService {
     total: number;
   }> {
     const [waiting, withDoctor, completed, total] = await Promise.all([
-      this.queueItemRepository.count({ where: { status: QueueStatus.WAITING } }),
-      this.queueItemRepository.count({ where: { status: QueueStatus.WITH_DOCTOR } }),
-      this.queueItemRepository.count({ where: { status: QueueStatus.COMPLETED } }),
+      this.queueItemRepository.count({
+        where: { status: QueueStatus.WAITING },
+      }),
+      this.queueItemRepository.count({
+        where: { status: QueueStatus.WITH_DOCTOR },
+      }),
+      this.queueItemRepository.count({
+        where: { status: QueueStatus.COMPLETED },
+      }),
       this.queueItemRepository.count(),
     ]);
 
@@ -135,4 +148,4 @@ export class QueueService {
 
     console.log('Sample queue items created');
   }
-} 
+}

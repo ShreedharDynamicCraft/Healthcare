@@ -1,21 +1,21 @@
-import { 
-  Injectable, 
-  UnauthorizedException, 
+import {
+  Injectable,
+  UnauthorizedException,
   ConflictException,
   BadRequestException,
   Logger,
-  ForbiddenException 
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
-import { 
-  LoginDto, 
-  RegisterDto, 
-  AuthResponseDto, 
+import {
+  LoginDto,
+  RegisterDto,
+  AuthResponseDto,
   UserResponseDto,
-  ChangePasswordDto 
+  ChangePasswordDto,
 } from './dto/auth.dto';
 import * as bcrypt from 'bcryptjs';
 
@@ -30,14 +30,14 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const { 
-      email, 
-      password, 
-      firstName, 
-      lastName, 
-      phoneNumber, 
-      department, 
-      role 
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phoneNumber,
+      department,
+      role,
     } = registerDto;
 
     // Check if user already exists
@@ -87,12 +87,16 @@ export class AuthService {
 
     // Check if account is locked
     if (user.isLocked) {
-      throw new ForbiddenException('Account is temporarily locked due to multiple failed login attempts. Please try again later.');
+      throw new ForbiddenException(
+        'Account is temporarily locked due to multiple failed login attempts. Please try again later.',
+      );
     }
 
     // Check if user is active
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated. Please contact administrator.');
+      throw new UnauthorizedException(
+        'Account is deactivated. Please contact administrator.',
+      );
     }
 
     // Validate password
@@ -101,7 +105,7 @@ export class AuthService {
       // Increment login attempts
       await user.incrementLoginAttempts();
       await this.userRepository.save(user);
-      
+
       this.logger.warn(`Failed login attempt for user: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -121,7 +125,10 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<void> {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<void> {
     const { currentPassword, newPassword } = changePasswordDto;
 
     const user = await this.userRepository.findOne({
@@ -162,34 +169,43 @@ export class AuthService {
     return this.transformUserToResponse(user);
   }
 
-  async updateUserProfile(userId: string, updateData: Partial<User>): Promise<UserResponseDto> {
+  async updateUserProfile(
+    userId: string,
+    updateData: Partial<User>,
+  ): Promise<UserResponseDto> {
     const user = await this.validateUser(userId);
 
     // Update allowed fields
-    const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'department', 'avatar'];
-    allowedFields.forEach(field => {
+    const allowedFields = [
+      'firstName',
+      'lastName',
+      'phoneNumber',
+      'department',
+      'avatar',
+    ];
+    allowedFields.forEach((field) => {
       if (updateData[field] !== undefined) {
         user[field] = updateData[field];
       }
     });
 
     await this.userRepository.save(user);
-    
+
     this.logger.log(`User profile updated: ${user.email}`);
     return this.transformUserToResponse(user);
   }
 
   private async generateTokens(user: User): Promise<{ accessToken: string }> {
-    const payload = { 
-      sub: user.id, 
-      email: user.email, 
+    const payload = {
+      sub: user.id,
+      email: user.email,
       role: user.role,
       firstName: user.firstName,
-      lastName: user.lastName
+      lastName: user.lastName,
     };
-    
+
     const accessToken = this.jwtService.sign(payload);
-    
+
     return { accessToken };
   }
 
@@ -225,7 +241,9 @@ export class AuthService {
       });
 
       await this.userRepository.save(admin);
-      this.logger.log('Default admin user created with email: admin@clinic.com');
+      this.logger.log(
+        'Default admin user created with email: admin@clinic.com',
+      );
     }
   }
 
@@ -235,7 +253,7 @@ export class AuthService {
       order: { createdAt: 'DESC' },
     });
 
-    return users.map(user => this.transformUserToResponse(user));
+    return users.map((user) => this.transformUserToResponse(user));
   }
 
   async deactivateUser(userId: string): Promise<void> {
@@ -269,4 +287,4 @@ export class AuthService {
 
     this.logger.log(`User activated: ${user.email}`);
   }
-} 
+}

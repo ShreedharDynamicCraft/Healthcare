@@ -72,7 +72,9 @@ export class Appointment {
   @Column({ default: false })
   isUrgent: boolean;
 
-  @ManyToOne(() => Doctor, (doctor) => doctor.appointments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Doctor, (doctor) => doctor.appointments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'doctorId' })
   doctor: Doctor;
 
@@ -95,4 +97,4 @@ export class Appointment {
     // This would be calculated based on other appointments
     return false;
   }
-} 
+}

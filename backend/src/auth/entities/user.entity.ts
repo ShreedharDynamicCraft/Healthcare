@@ -108,4 +108,4 @@ export class User {
   getInitials(): string {
     return `${this.firstName?.[0] || ''}${this.lastName?.[0] || ''}`.toUpperCase();
   }
-} 
+}

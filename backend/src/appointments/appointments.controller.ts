@@ -9,10 +9,19 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AppointmentsService } from './appointments.service';
-import { CreateAppointmentDto, UpdateAppointmentDto, FilterAppointmentsDto } from './dto/appointment.dto';
+import {
+  CreateAppointmentDto,
+  UpdateAppointmentDto,
+  FilterAppointmentsDto,
+} from './dto/appointment.dto';
 import { Appointment, AppointmentStatus } from './entities/appointment.entity';
 
 @ApiTags('Appointments')
@@ -24,22 +33,38 @@ export class AppointmentsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new appointment' })
-  @ApiResponse({ status: 201, description: 'Appointment created successfully', type: Appointment })
+  @ApiResponse({
+    status: 201,
+    description: 'Appointment created successfully',
+    type: Appointment,
+  })
   @ApiResponse({ status: 409, description: 'Scheduling conflict' })
-  create(@Body() createAppointmentDto: CreateAppointmentDto): Promise<Appointment> {
+  create(
+    @Body() createAppointmentDto: CreateAppointmentDto,
+  ): Promise<Appointment> {
     return this.appointmentsService.create(createAppointmentDto);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all appointments with filtering and pagination' })
-  @ApiResponse({ status: 200, description: 'Appointments retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get all appointments with filtering and pagination',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Appointments retrieved successfully',
+  })
   findAll(@Query() filterDto: FilterAppointmentsDto) {
     return this.appointmentsService.findAll(filterDto);
   }
 
   @Get('slots/:doctorId/:date')
-  @ApiOperation({ summary: 'Get available time slots for a doctor on a specific date' })
-  @ApiResponse({ status: 200, description: 'Available slots retrieved successfully' })
+  @ApiOperation({
+    summary: 'Get available time slots for a doctor on a specific date',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Available slots retrieved successfully',
+  })
   getAvailableSlots(
     @Param('doctorId') doctorId: string,
     @Param('date') date: string,
@@ -49,7 +74,11 @@ export class AppointmentsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get an appointment by ID' })
-  @ApiResponse({ status: 200, description: 'Appointment retrieved successfully', type: Appointment })
+  @ApiResponse({
+    status: 200,
+    description: 'Appointment retrieved successfully',
+    type: Appointment,
+  })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
   findOne(@Param('id') id: string): Promise<Appointment> {
     return this.appointmentsService.findOne(id);
@@ -57,7 +86,11 @@ export class AppointmentsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update an appointment' })
-  @ApiResponse({ status: 200, description: 'Appointment updated successfully', type: Appointment })
+  @ApiResponse({
+    status: 200,
+    description: 'Appointment updated successfully',
+    type: Appointment,
+  })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
   @ApiResponse({ status: 409, description: 'Scheduling conflict' })
   update(
@@ -69,7 +102,11 @@ export class AppointmentsController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update appointment status' })
-  @ApiResponse({ status: 200, description: 'Appointment status updated successfully', type: Appointment })
+  @ApiResponse({
+    status: 200,
+    description: 'Appointment status updated successfully',
+    type: Appointment,
+  })
   @ApiResponse({ status: 404, description: 'Appointment not found' })
   updateStatus(
     @Param('id') id: string,
@@ -85,4 +122,4 @@ export class AppointmentsController {
   remove(@Param('id') id: string): Promise<void> {
     return this.appointmentsService.remove(id);
   }
-} 
+}

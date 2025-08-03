@@ -11,4 +11,4 @@ import { DoctorsModule } from '../doctors/doctors.module';
   providers: [AppointmentsService],
   exports: [AppointmentsService],
 })
-export class AppointmentsModule {} 
+export class AppointmentsModule {}

@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse } from 'axios';
 import { toast } from 'react-hot-toast';
 import { useAuthStore, AuthResponse, User } from './stores/auth-store';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
 
 // Create axios instance
 const api = axios.create({
@@ -223,74 +223,77 @@ export const healthAPI = {
 // Dashboard analytics
 export const analyticsAPI = {
   getDashboardStats: async () => {
-    const response = await api.get('/analytics/dashboard');
-    return response.data;
+    try {
+      // Simulate dashboard stats by aggregating real data
+      const [queueData, doctorsData, appointmentsData] = await Promise.all([
+        queueAPI.getAll(),
+        doctorsAPI.getAll(),
+        appointmentsAPI.getAll()
+      ]);
+
+      return {
+        queueStats: {
+          total: queueData?.length || 0,
+          waiting: queueData?.filter((item: any) => item.status === 'waiting').length || 0,
+          withDoctor: queueData?.filter((item: any) => item.status === 'in-progress').length || 0,
+          completed: queueData?.filter((item: any) => item.status === 'completed').length || 0,
+        },
+        doctorStats: {
+          total: doctorsData?.data?.length || 0,
+          available: doctorsData?.data?.filter((doc: any) => doc.status === 'available').length || 0,
+          busy: doctorsData?.data?.filter((doc: any) => doc.status === 'busy').length || 0,
+          offDuty: doctorsData?.data?.filter((doc: any) => doc.status === 'off-duty').length || 0,
+        },
+        appointmentStats: {
+          total: appointmentsData?.data?.length || 0,
+          scheduled: appointmentsData?.data?.filter((apt: any) => apt.status === 'scheduled').length || 0,
+          confirmed: appointmentsData?.data?.filter((apt: any) => apt.status === 'confirmed').length || 0,
+          inProgress: appointmentsData?.data?.filter((apt: any) => apt.status === 'in-progress').length || 0,
+          completed: appointmentsData?.data?.filter((apt: any) => apt.status === 'completed').length || 0,
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      throw error;
+    }
   },
   
   getAppointmentStats: async (period = '7d') => {
-    const response = await api.get(`/analytics/appointments?period=${period}`);
-    return response.data;
+    // Fallback for appointment stats - use real appointments data
+    try {
+      const response = await appointmentsAPI.getAll();
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching appointment stats:', error);
+      throw error;
+    }
   },
   
   getPatientStats: async (period = '7d') => {
-    const response = await api.get(`/analytics/patients?period=${period}`);
-    return response.data;
-  },
-  
-  exportData: async (type: 'csv' | 'pdf', entity: string, filters?: any) => {
-    const response = await api.post(`/analytics/export`, {
-      type,
-      entity,
-      filters
-    }, {
-      responseType: 'blob'
-    });
-    return response.data;
-  },
-};
-
-// Patients/Customers API
-export const patientsAPI = {
-  getAll: async (params?: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    filters?: any;
-  }) => {
-    const response = await api.get('/patients', { params });
-    return response.data;
-  },
-  
-  getById: async (id: string) => {
-    const response = await api.get(`/patients/${id}`);
-    return response.data;
-  },
-  
-  create: async (patientData: any) => {
-    const response = await api.post('/patients', patientData);
-    return response.data;
-  },
-  
-  update: async (id: string, patientData: any) => {
-    const response = await api.put(`/patients/${id}`, patientData);
-    return response.data;
-  },
-  
-  delete: async (id: string) => {
-    await api.delete(`/patients/${id}`);
-  },
-  
-  export: async (format: 'csv' | 'pdf', filters?: any) => {
-    const response = await api.post('/patients/export', {
-      format,
-      filters
-    }, {
-      responseType: 'blob'
-    });
-    return response.data;
-  },
+    // Extract patient stats from appointments
+    try {
+      const response = await appointmentsAPI.getAll();
+      const appointments = response.data || [];
+      
+      // Group by patient email to get unique patients
+      const patients = appointments.reduce((acc: any[], apt: any) => {
+        if (!acc.find(p => p.email === apt.patientEmail)) {
+          acc.push({
+            email: apt.patientEmail,
+            name: apt.patientName,
+            phone: apt.patientPhone,
+            lastVisit: apt.appointmentDate
+          });
+        }
+        return acc;
+      }, []);
+      
+      return patients;
+    } catch (error) {
+      console.error('Error fetching patient stats:', error);
+      throw error;
+    }
+  }
 };
 
 export default api; 

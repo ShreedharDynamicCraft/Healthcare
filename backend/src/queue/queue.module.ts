@@ -10,4 +10,4 @@ import { QueueItem } from './entities/queue-item.entity';
   providers: [QueueService],
   exports: [QueueService],
 })
-export class QueueModule {} 
+export class QueueModule {}

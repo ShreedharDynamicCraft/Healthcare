@@ -9,7 +9,7 @@ export class AppController {
       message: 'Clinic Manager API',
       status: 'running',
       timestamp: new Date().toISOString(),
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 
@@ -18,7 +18,7 @@ export class AppController {
     return {
       status: 'ok',
       message: 'API is healthy',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -26,4 +26,4 @@ export class AppController {
   favicon(@Res() res: Response) {
     res.status(204).send();
   }
-} 
+}

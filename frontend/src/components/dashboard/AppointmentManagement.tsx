@@ -214,7 +214,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full mx-auto mb-4"
           />
-          <p className="text-gray-600">Loading consultations...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading consultations...</p>
         </div>
       </motion.div>
     );
@@ -237,7 +237,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
           <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
             Consultation Management
           </h2>
-          <p className="text-gray-600">Schedule and manage intimate wellness consultations with care</p>
+          <p className="text-gray-600 dark:text-gray-400">Schedule and manage intimate wellness consultations with care</p>
         </motion.div>
         
         <motion.div 
@@ -300,7 +300,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total</p>
               <p className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{stats.total}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-xl flex items-center justify-center">
@@ -315,7 +315,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Scheduled</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Scheduled</p>
               <p className="text-3xl font-bold text-purple-600">{stats.scheduled}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-xl flex items-center justify-center">
@@ -330,7 +330,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Confirmed</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Confirmed</p>
               <p className="text-3xl font-bold text-emerald-600">{stats.confirmed}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800 rounded-xl flex items-center justify-center">
@@ -345,7 +345,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">In Session</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">In Session</p>
               <p className="text-3xl font-bold text-purple-600">{stats.inProgress}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-purple-200 dark:from-purple-900 dark:to-purple-800 rounded-xl flex items-center justify-center">
@@ -360,8 +360,8 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-3xl font-bold text-gray-600">{stats.completed}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+              <p className="text-3xl font-bold text-gray-600 dark:text-gray-400">{stats.completed}</p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl flex items-center justify-center">
               <CheckCircle className="h-6 w-6 text-gray-600 dark:text-gray-400" />
@@ -374,25 +374,25 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar Preview */}
         <div className="lg:col-span-1">
-          <div className="card hover-lift">
+          <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 p-6 rounded-3xl shadow-lg border border-purple-100 dark:border-purple-900 hover:shadow-xl transition-all duration-300">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Availability Calendar</h3>
-                <p className="text-sm text-gray-600">Check doctor availability</p>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">Availability Calendar</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Check doctor availability</p>
               </div>
             </div>
             
             {/* Doctor and Date Selection */}
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Doctor</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Doctor</label>
                 <select
                   value={selectedDoctor}
                   onChange={(e) => setSelectedDoctor(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="">Choose a doctor</option>
                   {doctors.map((doctor) => (
@@ -404,7 +404,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Date</label>
                 <input
                   type="date"
                   value={isNaN(selectedDate.getTime()) ? '' : selectedDate.toISOString().split('T')[0]}
@@ -416,14 +416,14 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
                       setSelectedDate(new Date());
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
               </div>
               
               {selectedDoctor && (
                 <button
                   onClick={loadAvailableSlots}
-                  className="w-full btn-primary"
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
                   disabled={isLoadingSlots}
                 >
                   {isLoadingSlots ? 'Loading...' : 'Check Availability'}
@@ -434,13 +434,13 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
             {/* Available Slots */}
             {availableSlots.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Available Slots</h4>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Available Slots</h4>
                 <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
                   {availableSlots.map((slot, index) => (
                     <button
                       key={index}
                       onClick={() => handleSlotSelect(slot)}
-                      className="px-3 py-2 text-sm bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+                      className="px-3 py-2 text-sm bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                     >
                       {slot}
                     </button>
@@ -451,7 +451,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
             
             {selectedDoctor && availableSlots.length === 0 && !isLoadingSlots && (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500">No available slots for this date</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No available slots for this date</p>
               </div>
             )}
           </div>
@@ -459,31 +459,31 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
 
         {/* Appointments List */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-3xl shadow-soft border border-gray-100 overflow-hidden">
-            <div className="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100/50">
-              <h3 className="text-xl font-bold text-gray-900">Upcoming Appointments</h3>
-              <p className="text-sm text-gray-600 mt-1">Manage and track all appointments</p>
+          <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 rounded-3xl shadow-lg border border-purple-100 dark:border-purple-900 overflow-hidden">
+            <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50/50 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-700/50">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Upcoming Appointments</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Manage and track all appointments</p>
             </div>
             
             {appointments.length === 0 ? (
               <div className="px-8 py-16 text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Calendar className="h-10 w-10 text-gray-400" />
+                <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Calendar className="h-10 w-10 text-gray-400 dark:text-gray-500" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No appointments scheduled</h3>
-                <p className="text-gray-600 mb-6">Schedule your first appointment to get started</p>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No appointments scheduled</h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-6">Schedule your first appointment to get started</p>
                 <button
                   onClick={() => setShowBookingForm(true)}
-                  className="btn-primary"
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-2xl font-semibold flex items-center gap-2 mx-auto hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
                 >
-                  <Plus className="h-5 w-5 mr-2" />
+                  <Plus className="h-5 w-5" />
                   Schedule First Appointment
                 </button>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-gray-100 dark:divide-gray-700">
                 {appointments.map((appointment) => (
-                  <div key={appointment.id} className="px-8 py-6 hover:bg-gray-50/50 transition-all duration-200">
+                  <div key={appointment.id} className="px-8 py-6 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-all duration-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-6">
                         <div className="flex items-center space-x-4">
@@ -618,21 +618,21 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scaleIn">
-        <div className="p-6 border-b border-gray-100">
+      <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-scaleIn border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
                 <Plus className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-gray-900">Schedule New Appointment</h3>
-                <p className="text-sm text-gray-600">Book a new patient appointment</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">Schedule New Appointment</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Book a new patient appointment</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <X className="h-6 w-6" />
             </button>
@@ -641,14 +641,14 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Note about checking available slots */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
               <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mt-0.5">
                 <span className="text-white text-xs font-bold">!</span>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-blue-900 mb-1">Important Note</h4>
-                <p className="text-sm text-blue-700">
+                <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">Important Note</h4>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
                   Please check the available slots using the availability calendar before selecting a time to ensure the slot is available for booking.
                 </p>
               </div>
@@ -657,24 +657,24 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Patient Name *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Patient Name *</label>
               <input
                 type="text"
                 value={formData.patientName}
                 onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
-                className="input-field"
+                className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter patient name"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Phone Number *</label>
               <input
                 type="tel"
                 value={formData.patientPhone}
                 onChange={(e) => setFormData({ ...formData, patientPhone: e.target.value })}
-                className="input-field"
+                className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 placeholder="Enter phone number"
                 required
               />
@@ -682,22 +682,22 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
             <input
               type="email"
               value={formData.patientEmail}
               onChange={(e) => setFormData({ ...formData, patientEmail: e.target.value })}
-              className="input-field"
+              className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               placeholder="Enter email address"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Doctor *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Doctor *</label>
             <select
               value={formData.doctorId}
               onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
-              className="input-field"
+              className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               required
             >
               <option value="">Select a doctor</option>
@@ -710,45 +710,45 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Date *</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Date *</label>
             <input
               type="date"
               value={formData.appointmentDate}
               onChange={(e) => setFormData({ ...formData, appointmentDate: e.target.value })}
-              className="input-field"
+              className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               required
             />
           </div>
           
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Start Time *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Start Time *</label>
               <input
                 type="time"
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                className="input-field"
+                className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">End Time *</label>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">End Time *</label>
               <input
                 type="time"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                className="input-field"
+                className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 required
               />
             </div>
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Appointment Type</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Appointment Type</label>
             <select
               value={formData.type}
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="input-field"
+              className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
               <option value="consultation">Consultation</option>
               <option value="follow_up">Follow-up</option>
@@ -758,27 +758,27 @@ function BookingForm({ doctors, preFilledData, onClose, onSubmit }: BookingFormP
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="input-field"
+              className="w-full px-3 py-2 bg-white/70 backdrop-blur-xl dark:bg-gray-700/70 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               rows={3}
               placeholder="Additional notes..."
             />
           </div>
           
-          <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-100">
+          <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-100 dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="btn-secondary"
+              className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn-primary"
+              className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
             >
               Schedule Appointment
             </button>

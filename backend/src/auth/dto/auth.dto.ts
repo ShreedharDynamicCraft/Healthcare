@@ -1,27 +1,27 @@
-import { 
-  IsEmail, 
-  IsString, 
-  MinLength, 
-  IsOptional, 
-  IsEnum, 
-  IsPhoneNumber, 
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsOptional,
+  IsEnum,
+  IsPhoneNumber,
   MaxLength,
-  Matches 
+  Matches,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserRole } from '../entities/user.entity';
 
 export class LoginDto {
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'admin@clinic.com',
-    description: 'User email address' 
+    description: 'User email address',
   })
   @IsEmail({}, { message: 'Please provide a valid email address' })
   email: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'admin123',
-    description: 'User password (minimum 8 characters)' 
+    description: 'User password (minimum 8 characters)',
   })
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
@@ -29,61 +29,63 @@ export class LoginDto {
 }
 
 export class RegisterDto {
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'admin@clinic.com',
-    description: 'User email address' 
+    description: 'User email address',
   })
   @IsEmail({}, { message: 'Please provide a valid email address' })
   email: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'SecurePass123!',
-    description: 'Password with at least 8 characters, including uppercase, lowercase, number and special character' 
+    description:
+      'Password with at least 8 characters, including uppercase, lowercase, number and special character',
   })
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-    message: 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character'
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
   })
   password: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'John',
-    description: 'User first name' 
+    description: 'User first name',
   })
   @IsString()
   @MaxLength(50, { message: 'First name must not exceed 50 characters' })
   firstName: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: 'Doe',
-    description: 'User last name' 
+    description: 'User last name',
   })
   @IsString()
   @MaxLength(50, { message: 'Last name must not exceed 50 characters' })
   lastName: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     example: '+1234567890',
-    description: 'User phone number' 
+    description: 'User phone number',
   })
   @IsOptional()
   @IsPhoneNumber(null, { message: 'Please provide a valid phone number' })
   phoneNumber?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     example: 'Reception',
-    description: 'User department' 
+    description: 'User department',
   })
   @IsOptional()
   @IsString()
   @MaxLength(100)
   department?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     enum: UserRole,
     example: UserRole.STAFF,
-    description: 'User role in the system' 
+    description: 'User role in the system',
   })
   @IsOptional()
   @IsEnum(UserRole, { message: 'Role must be either admin or staff' })
@@ -154,7 +156,8 @@ export class ChangePasswordDto {
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, {
-    message: 'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character'
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character',
   })
   newPassword: string;
-} 
+}

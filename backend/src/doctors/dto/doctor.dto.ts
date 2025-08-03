@@ -1,6 +1,17 @@
-import { IsString, IsEmail, IsEnum, IsOptional, IsBoolean, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsObject,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { DoctorSpecialization, DoctorGender, DoctorStatus } from '../entities/doctor.entity';
+import {
+  DoctorSpecialization,
+  DoctorGender,
+  DoctorStatus,
+} from '../entities/doctor.entity';
 
 export class CreateDoctorDto {
   @ApiProperty({ example: 'John' })
@@ -19,7 +30,10 @@ export class CreateDoctorDto {
   @IsString()
   phone: string;
 
-  @ApiProperty({ enum: DoctorSpecialization, example: DoctorSpecialization.INTIMATE_HEALTH })
+  @ApiProperty({
+    enum: DoctorSpecialization,
+    example: DoctorSpecialization.INTIMATE_HEALTH,
+  })
   @IsEnum(DoctorSpecialization)
   specialization: DoctorSpecialization;
 
@@ -31,7 +45,9 @@ export class CreateDoctorDto {
   @IsString()
   location: string;
 
-  @ApiProperty({ example: 'Experienced general practitioner with 10 years of experience.' })
+  @ApiProperty({
+    example: 'Experienced general practitioner with 10 years of experience.',
+  })
   @IsOptional()
   @IsString()
   bio?: string;
@@ -41,7 +57,11 @@ export class CreateDoctorDto {
   @IsString()
   avatar?: string;
 
-  @ApiProperty({ enum: DoctorStatus, example: DoctorStatus.AVAILABLE, required: false })
+  @ApiProperty({
+    enum: DoctorStatus,
+    example: DoctorStatus.AVAILABLE,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(DoctorStatus)
   status?: DoctorStatus;
@@ -112,7 +132,10 @@ export class UpdateDoctorDto {
   @IsEnum(DoctorStatus)
   status?: DoctorStatus;
 
-  @ApiProperty({ example: 'Experienced general practitioner with 10 years of experience.', required: false })
+  @ApiProperty({
+    example: 'Experienced general practitioner with 10 years of experience.',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   bio?: string;
@@ -169,4 +192,4 @@ export class FilterDoctorsDto {
   @ApiProperty({ required: false, default: 10 })
   @IsOptional()
   limit?: number = 10;
-} 
+}
