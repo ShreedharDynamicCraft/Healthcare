@@ -1,353 +1,427 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { toast } from 'react-hot-toast';
-import { Eye, EyeOff, LogIn, Heart, Sparkles, Shield, Lock, User, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import api from '@/lib/api';
-
-interface LoginForm {
-  email: string;
-  password: string;
-}
+import { authAPI } from '@/lib/api';
+import type { AuthResponse } from '@/lib/stores/auth-store';
+import { 
+  Eye, 
+  EyeOff, 
+  Heart, 
+  Shield, 
+  Award, 
+  Users, 
+  CheckCircle,
+  Star,
+  Lock,
+  Mail,
+  Sparkles
+} from 'lucide-react';
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { login } = useAuthStore();
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginForm>({
-    defaultValues: {
-      email: 'admin@clinic.com',
-      password: 'AdminPass123!'
-    }
+  const { login, isAuthenticated } = useAuthStore();
+  const [isClient, setIsClient] = useState(false);
+  const [formData, setFormData] = useState({
+    email: 'admin@clinic.com',
+    password: 'AdminPass123!'
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const onSubmit = async (data: LoginForm) => {
-    setIsLoading(true);
-    try {
-      const response = await api.post('/auth/login', data);
-      
-      // The response interceptor unwraps the data, so response.data contains { accessToken, user }
-      const { accessToken, user } = response.data;
-      
-      login(user, accessToken);
-      toast.success('Welcome back! Login successful');
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isClient && isAuthenticated) {
       router.push('/dashboard');
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Login failed. Please try again.');
+    }
+  }, [isAuthenticated, router, isClient]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const authResponse: AuthResponse = await authAPI.login(formData.email, formData.password);
+      login(authResponse.user, authResponse.accessToken);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Don't render until client-side
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="w-20 h-20 mx-auto mb-6">
+            <img 
+              src="https://www.allohealth.com/assets/lovable-uploads/allo-logo-v1.svg" 
+              alt="Allo Health Logo" 
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-8 h-8 border-3 border-purple-200 border-t-purple-500 rounded-full mx-auto mb-4"
+          />
+          <p className="text-purple-700 font-medium">Loading Allo Health...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 flex">
-      {/* Left Side - Login Form */}
-      <motion.div 
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12"
-      >
-        <div className="max-w-md w-full space-y-8">
-          {/* Allo Branding Header */}
-          <motion.div 
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-center"
-          >
-            <div className="mx-auto w-24 h-24 flex items-center justify-center mb-6">
-              <img 
-                src="https://www.allohealth.com/assets/lovable-uploads/allo-logo-v1.svg" 
-                alt="Allo Health Logo" 
-                className="w-20 h-20 object-contain"
-              />
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-              Welcome to Allo
-            </h1>
-            <p className="text-lg text-gray-600 font-medium">
-              Your trusted sexual wellness clinic
-            </p>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <Sparkles className="h-4 w-4 text-purple-400" />
-              <span className="text-sm text-purple-600 font-medium">Professional • Confidential • Caring</span>
-              <Sparkles className="h-4 w-4 text-purple-400" />
-            </div>
-          </motion.div>
-
-          {/* Admin Credentials Notice */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-4 shadow-sm"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
-                <Shield className="h-4 w-4 text-white" />
-              </div>
-              <h3 className="text-sm font-semibold text-purple-800">Demo Access</h3>
-            </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <User className="h-3 w-3 text-purple-600" />
-                <span className="text-purple-700"><strong>Email:</strong> admin@clinic.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Lock className="h-3 w-3 text-purple-600" />
-                <span className="text-purple-700"><strong>Password:</strong> AdminPass123!</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Login Form */}
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="bg-white/70 backdrop-blur-sm rounded-3xl p-8 shadow-xl shadow-purple-100/50 border border-white/20"
-          >
-            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-3">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <input
-                    {...register('email', {
-                      required: 'Email is required',
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: 'Invalid email address',
-                      },
-                    })}
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    className="w-full px-4 py-4 bg-white/80 border border-purple-200 rounded-2xl focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 placeholder-gray-400 text-gray-700"
-                    placeholder="Enter your email"
-                  />
-                  <User className="absolute right-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                </div>
-                <AnimatePresence>
-                  {errors.email && (
-                    <motion.p 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="mt-2 text-sm text-red-500 flex items-center gap-2"
-                    >
-                      <div className="w-1 h-1 bg-red-500 rounded-full"></div>
-                      {errors.email.message}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-3">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    {...register('password', {
-                      required: 'Password is required',
-                      minLength: {
-                        value: 6,
-                        message: 'Password must be at least 6 characters',
-                      },
-                    })}
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    className="w-full px-4 py-4 bg-white/80 border border-purple-200 rounded-2xl focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200 placeholder-gray-400 text-gray-700 pr-12"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-600 transition-colors"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                <AnimatePresence>
-                  {errors.password && (
-                    <motion.p 
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="mt-2 text-sm text-red-500 flex items-center gap-2"
-                    >
-                      <div className="w-1 h-1 bg-red-500 rounded-full"></div>
-                      {errors.password.message}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-purple-200/50 transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <AnimatePresence mode="wait">
-                  {isLoading ? (
-                    <motion.div
-                      key="loading"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center gap-3"
-                    >
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Signing in...
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="signin"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="flex items-center gap-3"
-                    >
-                      <LogIn className="h-5 w-5" />
-                      Sign In to Allo
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
-            </form>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Right Side - Allo Brand Hero */}
-      <motion.div 
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-purple-500 via-pink-500 to-indigo-500 relative overflow-hidden"
-      >
-        {/* Animated Background Elements */}
+    <div className="min-h-screen bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900 flex flex-col lg:flex-row relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div 
           animate={{ 
-            x: [0, 30, 0],
-            y: [0, -20, 0],
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            rotate: [0, 180, 360]
           }}
           transition={{ 
-            duration: 6,
+            duration: 20,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-20 left-20 w-32 h-32 bg-white/10 rounded-full blur-xl"
+          className="absolute top-20 left-20 w-64 h-64 bg-purple-100/40 dark:bg-purple-800/30 rounded-full blur-3xl"
         />
         <motion.div 
           animate={{ 
-            x: [0, -25, 0],
-            y: [0, 15, 0],
+            x: [0, -80, 0],
+            y: [0, 80, 0],
+            rotate: [360, 180, 0]
+          }}
+          transition={{ 
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute bottom-20 right-20 w-48 h-48 bg-pink-100/40 dark:bg-pink-800/30 rounded-full blur-2xl"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.4, 0.2]
           }}
           transition={{ 
             duration: 8,
             repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1
+            ease: "easeInOut"
           }}
-          className="absolute bottom-32 right-16 w-48 h-48 bg-white/10 rounded-full blur-xl"
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-100/30 dark:bg-indigo-800/20 rounded-full blur-3xl"
         />
-        
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-12 py-12 text-white">
+      </div>
+
+      {/* Left Side - Branding Section */}
+      <div className="lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-md w-full text-center lg:text-left"
+        >
+          {/* Logo */}
           <motion.div 
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 0.8 }}
-            className="max-w-lg"
+            transition={{ delay: 0.2 }}
+            className="flex justify-center lg:justify-start mb-8"
           >
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm p-2">
-                <img 
-                  src="https://www.allohealth.com/assets/lovable-uploads/allo-logo-v1.svg" 
-                  alt="Allo Health Logo" 
-                  className="w-12 h-12 object-contain filter brightness-0 invert"
-                />
-              </div>
-              <div>
-                <h2 className="text-3xl font-bold">Allo Health</h2>
-                <p className="text-purple-100 font-medium">Sexual Wellness Excellence</p>
-              </div>
+            <div className="w-20 h-20 bg-white/90 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-gray-200/50 shadow-xl">
+              <img 
+                src="https://www.allohealth.com/assets/lovable-uploads/allo-logo-v1.svg" 
+                alt="Allo Health Logo" 
+                className="w-12 h-12 object-contain"
+              />
+            </div>
+          </motion.div>
+
+          {/* Branding Content */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mb-8"
+          >
+            <div className="mb-6">
+              <h1 className="text-4xl lg:text-5xl font-bold text-purple-800 dark:text-purple-300 mb-2">
+                Welcome to Allo
+              </h1>
+              <h2 className="text-2xl lg:text-3xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                Your trusted sexual wellness clinic
+              </h2>
             </div>
             
-            <motion.h1 
+            <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
-              className="text-5xl font-bold mb-6 leading-tight"
+              transition={{ delay: 0.6 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-4 mb-6 border border-gray-200/50 dark:border-gray-700/50"
             >
-              Compassionate Care,
-              <span className="block text-6xl font-extrabold bg-white/20 bg-clip-text text-transparent">
-                Professional Results
-              </span>
-            </motion.h1>
+              <p className="text-lg font-medium text-center text-gray-700 dark:text-gray-300 mb-2">
+                Professional • Confidential • Caring
+              </p>
+            </motion.div>
             
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.4, duration: 0.8 }}
-              className="text-xl text-purple-100 mb-8 leading-relaxed"
+              transition={{ delay: 0.8 }}
+              className="text-lg text-gray-600 dark:text-gray-400 text-center lg:text-left"
             >
-              Your trusted partner in sexual health and wellness. Experience personalized, confidential care in a safe and supportive environment.
+              Science-backed solutions for sexual health, delivered with care
             </motion.p>
+          </motion.div>
+
+          {/* Trust Indicators */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="grid grid-cols-2 gap-6"
+          >
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                <Award className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">85%</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Improved Performance</p>
+            </div>
             
-            {/* Trust Indicators */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-pink-600 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                <Heart className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-pink-600 dark:text-pink-400 mb-1">92%</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Improved Relationships</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                <Users className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-1">Doctor + Therapist</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Follow-up Included</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                <Shield className="h-8 w-8 text-white" />
+              </div>
+              <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Labs + Protocols</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Clinically Certified</p>
+            </div>
+          </motion.div>
+
+          {/* Additional Trust Elements */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="mt-10 pt-8 border-t border-gray-200/50 dark:border-gray-700/50"
+          >
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+              <span className="font-semibold">4.9/5 Rating</span>
+              <span>•</span>
+              <span>50,000+ Happy Clients</span>
+              <span>•</span>
+              <span>NABL Certified</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="lg:w-1/2 flex flex-col justify-center items-center p-8 lg:p-12 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/20 p-8 lg:p-10">
+            {/* Form Header */}
             <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-center mb-8"
+            >
+              <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Admin Portal
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Access your Allo Health dashboard
+              </p>
+              
+              {/* Demo Credentials */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6"
+              >
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">Demo Access</span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    <Mail className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-blue-700 dark:text-blue-300">
+                      <strong>Email:</strong> admin@clinic.com
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-center gap-2">
+                    <Lock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-blue-700 dark:text-blue-300">
+                      <strong>Password:</strong> AdminPass123!
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+
+            {/* Login Form */}
+            <motion.form 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.6, duration: 0.8 }}
-              className="space-y-4"
+              transition={{ delay: 0.5 }}
+              onSubmit={handleSubmit}
+              className="space-y-6"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <Shield className="h-5 w-5" />
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    placeholder="admin@clinic.com"
+                    defaultValue="admin@clinic.com"
+                  />
                 </div>
-                <span className="text-lg font-medium">100% Confidential & Secure</span>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <CheckCircle className="h-5 w-5" />
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200"
+                    placeholder="AdminPass123!"
+                    defaultValue="AdminPass123!"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
                 </div>
-                <span className="text-lg font-medium">Licensed Healthcare Professionals</span>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <span className="text-lg font-medium">Judgment-Free Environment</span>
+
+              {/* Error Message */}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3"
+                  >
+                    <p className="text-red-600 dark:text-red-400 text-sm text-center">{error}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Submit Button */}
+              <motion.button
+                type="submit"
+                disabled={isLoading}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    <span>Signing In...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Access Dashboard</span>
+                    <Sparkles className="h-5 w-5" />
+                  </>
+                )}
+              </motion.button>
+            </motion.form>
+
+            {/* Footer */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-8 pt-6 border-t border-gray-200/50 dark:border-gray-700/50"
+            >
+              <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                <Shield className="h-4 w-4" />
+                <span>Secured by Allo Health</span>
+                <span>•</span>
+                <span>ISO 27001 Certified</span>
               </div>
             </motion.div>
-          </motion.div>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
-} 
+}
