@@ -493,7 +493,7 @@ export default function AppointmentManagement({ onStatsUpdate }: AppointmentMana
                           <div>
                             <div className="flex items-center space-x-3 mb-2">
                               {getStatusIcon(appointment.status)}
-                              <span className="text-lg font-semibold text-gray-900">
+                              <span className="text-lg font-bold text-black-900">
                                 {appointment.patientName}
                               </span>
                               <span className="text-sm text-gray-500">with</span>

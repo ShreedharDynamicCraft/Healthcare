@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { User, Clock, MapPin, Stethoscope, Plus, Calendar, Grid, Edit, Trash2, Phone, Mail, Award, Activity, Heart, Shield } from 'lucide-react';
+import { User, Clock, MapPin, Stethoscope, Plus, Calendar, Grid, Edit, Trash2, Phone, Mail, Award, Activity, Heart, Shield, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import DoctorForm from './DoctorForm';
@@ -33,6 +33,7 @@ export default function AvailableDoctors({ onStatsUpdate }: AvailableDoctorsProp
   const [viewMode, setViewMode] = useState<'grid' | 'calendar'>('grid');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
+  const [selectedDoctorSchedule, setSelectedDoctorSchedule] = useState<Doctor | null>(null);
 
   useEffect(() => {
     loadDoctors();
@@ -323,6 +324,153 @@ export default function AvailableDoctors({ onStatsUpdate }: AvailableDoctorsProp
         />
       )}
 
+      {/* Doctor Schedule Modal */}
+      {selectedDoctorSchedule && (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedDoctorSchedule(null)}
+        >
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-3xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-200 dark:border-gray-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden shadow-lg">
+                    <img
+                      src={selectedDoctorSchedule.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedDoctorSchedule.firstName + ' ' + selectedDoctorSchedule.lastName)}&size=48&background=${selectedDoctorSchedule.gender === 'female' ? 'ec4899' : selectedDoctorSchedule.gender === 'male' ? '8b5cf6' : '6366f1'}&color=ffffff&bold=true&format=png`}
+                      alt={`Dr. ${selectedDoctorSchedule.firstName} ${selectedDoctorSchedule.lastName}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                      Dr. {selectedDoctorSchedule.firstName} {selectedDoctorSchedule.lastName}
+                    </h3>
+                    <p className="text-sm text-purple-600 dark:text-purple-400">{selectedDoctorSchedule.specialization}</p>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setSelectedDoctorSchedule(null)}
+                  className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <X className="h-6 w-6" />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-6">
+                {/* Current Status */}
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(selectedDoctorSchedule.status)}
+                      <span className="font-semibold text-gray-900 dark:text-white">Current Status</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedDoctorSchedule.status)}`}>
+                      {selectedDoctorSchedule.status === 'busy' ? 'In Session' : selectedDoctorSchedule.status.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2 mt-2 text-sm text-gray-600 dark:text-gray-400">
+                    <Clock className="h-4 w-4" />
+                    <span>{getNextAvailableTime(selectedDoctorSchedule)}</span>
+                  </div>
+                </div>
+
+                {/* Weekly Schedule */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-purple-600" />
+                    Weekly Schedule
+                  </h4>
+                  <div className="space-y-3">
+                    {Object.entries(selectedDoctorSchedule.availability || {}).map(([day, schedule]: [string, any]) => (
+                      <div key={day} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-3 h-3 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                          <span className="font-medium text-gray-900 dark:text-white capitalize">
+                            {day}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          {schedule?.available ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                              {schedule.start} - {schedule.end}
+                            </span>
+                          ) : (
+                            <span className="text-gray-500 dark:text-gray-400">Not available</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <Phone className="h-5 w-5 mr-2 text-purple-600" />
+                    Contact Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      <Phone className="h-4 w-4 text-purple-600" />
+                      <span className="text-gray-900 dark:text-white">{selectedDoctorSchedule.phone}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      <Mail className="h-4 w-4 text-purple-600" />
+                      <span className="text-gray-900 dark:text-white">{selectedDoctorSchedule.email}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                      <MapPin className="h-4 w-4 text-purple-600" />
+                      <span className="text-gray-900 dark:text-white">{selectedDoctorSchedule.location}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
+              <div className="flex items-center justify-end space-x-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setSelectedDoctorSchedule(null)}
+                  className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-xl font-semibold transition-colors"
+                >
+                  Close
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    setSelectedDoctorSchedule(null);
+                    setViewMode('calendar');
+                  }}
+                  className="px-6 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all duration-300"
+                >
+                  View Full Calendar
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* Content */}
       {viewMode === 'grid' ? (
         <motion.div 
@@ -463,6 +611,7 @@ export default function AvailableDoctors({ onStatsUpdate }: AvailableDoctorsProp
                   <motion.button 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedDoctorSchedule(doctor)}
                     className="w-full bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 text-purple-700 dark:text-purple-300 py-3 rounded-2xl font-semibold text-sm hover:from-purple-200 hover:to-pink-200 dark:hover:from-purple-800 dark:hover:to-pink-800 transition-all duration-300"
                   >
                     View Schedule

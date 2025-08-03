@@ -261,7 +261,94 @@ export default function AnalyticsPage() {
       const queueItems = queueResponse.data || [];
       const doctors = doctorsResponse.data.doctors || doctorsResponse.data || [];
 
-      // Process daily stats
+      console.log('Analytics Data Fetched:', {
+        appointmentsCount: appointments.length,
+        queueItemsCount: queueItems.length,
+        doctorsCount: doctors.length,
+        queueData: queueItems.map((item: any) => ({
+          status: item.status,
+          priority: item.priority,
+          patientName: item.patientName
+        }))
+      });
+
+      // Process current queue statistics for better analytics
+      const currentQueueStats = {
+        total: queueItems.length,
+        waiting: queueItems.filter((item: any) => item.status === 'waiting').length,
+        inSession: queueItems.filter((item: any) => item.status === 'with_doctor' || item.status === 'in_session').length,
+        completed: queueItems.filter((item: any) => item.status === 'completed').length,
+      };
+
+      console.log('Current Queue Statistics:', currentQueueStats);
+
+      // Process patient registrations using the same logic as the patients page
+      const patientMap = new Map<string, any>();
+      
+      // Process appointments to build patient records
+      appointments.forEach((appointment: any) => {
+        const key = appointment.patientPhone || appointment.patientEmail || appointment.patientName;
+        
+        if (!patientMap.has(key)) {
+          patientMap.set(key, {
+            id: appointment.id,
+            patientName: appointment.patientName,
+            patientPhone: appointment.patientPhone,
+            patientEmail: appointment.patientEmail,
+            registrationDate: appointment.appointmentDate,
+            lastVisitDate: appointment.appointmentDate,
+            totalVisits: 1,
+            appointments: [appointment],
+            queueEntries: []
+          });
+        } else {
+          const patient = patientMap.get(key)!;
+          patient.appointments.push(appointment);
+          patient.totalVisits++;
+          
+          // Update last visit date if this appointment is more recent
+          if (new Date(appointment.appointmentDate) > new Date(patient.lastVisitDate || '')) {
+            patient.lastVisitDate = appointment.appointmentDate;
+          }
+          
+          // Update registration date if this appointment is older
+          if (new Date(appointment.appointmentDate) < new Date(patient.registrationDate)) {
+            patient.registrationDate = appointment.appointmentDate;
+          }
+        }
+      });
+      
+      // Process queue entries to add to patient records
+      queueItems.forEach((queueEntry: any) => {
+        const key = queueEntry.patientPhone || queueEntry.patientName;
+        
+        if (!patientMap.has(key)) {
+          const arrivalTime = queueEntry.arrivalTime || queueEntry.createdAt || queueEntry.timestamp || new Date().toISOString();
+          patientMap.set(key, {
+            id: queueEntry.id,
+            patientName: queueEntry.patientName,
+            patientPhone: queueEntry.patientPhone,
+            registrationDate: arrivalTime,
+            totalVisits: 1,
+            appointments: [],
+            queueEntries: [queueEntry]
+          });
+        } else {
+          const patient = patientMap.get(key)!;
+          patient.queueEntries.push(queueEntry);
+        }
+      });
+      
+      const patientRecords = Array.from(patientMap.values());
+      
+      console.log('Patient Records Created:', {
+        totalPatients: patientRecords.length,
+        patientsFromAppointments: appointments.length,
+        patientsFromQueue: queueItems.length,
+        uniquePatients: patientRecords.map(p => ({ name: p.patientName, regDate: p.registrationDate }))
+      });
+
+      // Process daily stats using real patient registrations
       const dailyStatsMap = new Map();
       const now = new Date();
       const daysToShow = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
@@ -280,11 +367,19 @@ export default function AnalyticsPage() {
         });
       }
 
-      // Process appointments for daily stats
-      const patientRegistrations = new Map();
+      // Process patient registrations for daily stats
+      patientRecords.forEach((patient: any) => {
+        const registrationDate = new Date(patient.registrationDate).toISOString().split('T')[0];
+        
+        if (dailyStatsMap.has(registrationDate)) {
+          const dayStats = dailyStatsMap.get(registrationDate);
+          dayStats.newPatients++;
+        }
+      });
+
+      // Process appointments for completion stats
       appointments.forEach((appointment: any) => {
         const appointmentDate = new Date(appointment.appointmentDate).toISOString().split('T')[0];
-        const patientKey = appointment.patientPhone || appointment.patientEmail;
         
         if (dailyStatsMap.has(appointmentDate)) {
           const dayStats = dailyStatsMap.get(appointmentDate);
@@ -293,32 +388,34 @@ export default function AnalyticsPage() {
           if (appointment.status === 'completed') {
             dayStats.completedCases++;
           }
-          
-          // Check if this is the first appointment for this patient
-          if (!patientRegistrations.has(patientKey) || 
-              new Date(appointment.appointmentDate) < patientRegistrations.get(patientKey)) {
-            patientRegistrations.set(patientKey, new Date(appointment.appointmentDate));
-            dayStats.newPatients++;
-          }
         }
       });
 
-      // Process queue items for daily stats
+      // Process queue items for daily stats (including completed cases from queue)
       queueItems.forEach((queueItem: any) => {
-        const arrivalDate = new Date(queueItem.arrivalTime).toISOString().split('T')[0];
-        if (dailyStatsMap.has(arrivalDate)) {
-          dailyStatsMap.get(arrivalDate).queueCount++;
+        const arrivalTime = queueItem.arrivalTime || queueItem.createdAt || queueItem.timestamp;
+        if (arrivalTime) {
+          const arrivalDate = new Date(arrivalTime).toISOString().split('T')[0];
+          if (dailyStatsMap.has(arrivalDate)) {
+            const dayStats = dailyStatsMap.get(arrivalDate);
+            dayStats.queueCount++;
+            
+            // Add completed queue items as completed cases
+            if (queueItem.status === 'completed') {
+              dayStats.completedCases++;
+            }
+          }
         }
       });
 
       const dailyStats = Array.from(dailyStatsMap.values());
 
-      // Process monthly stats
+      // Process monthly stats using real patient registrations
       const monthlyStatsMap = new Map();
-      const monthlyPatients = new Map();
       
-      appointments.forEach((appointment: any) => {
-        const date = new Date(appointment.appointmentDate);
+      // Process patient registrations by month
+      patientRecords.forEach((patient: any) => {
+        const date = new Date(patient.registrationDate);
         const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
         
         if (!monthlyStatsMap.has(monthKey)) {
@@ -333,46 +430,81 @@ export default function AnalyticsPage() {
         }
         
         const monthStats = monthlyStatsMap.get(monthKey);
+        monthStats.newPatients++;
+      });
+      
+      // Add appointment completion data to monthly stats
+      appointments.forEach((appointment: any) => {
+        const date = new Date(appointment.appointmentDate);
+        const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
         
-        // Count unique patients per month
-        const patientKey = appointment.patientPhone || appointment.patientEmail;
-        const monthPatients = monthlyPatients.get(monthKey) || new Set();
-        monthPatients.add(patientKey);
-        monthlyPatients.set(monthKey, monthPatients);
-        monthStats.newPatients = monthPatients.size;
-        
-        if (appointment.status === 'completed') {
-          monthStats.completedCases++;
-          monthStats.totalRevenue += 500; // Assume $500 per completed appointment
+        if (monthlyStatsMap.has(monthKey)) {
+          const monthStats = monthlyStatsMap.get(monthKey);
+          
+          if (appointment.status === 'completed') {
+            monthStats.completedCases++;
+            monthStats.totalRevenue += 500; // Assume $500 per completed appointment
+          }
+        }
+      });
+      
+      // Add queue completion data to monthly stats
+      queueItems.forEach((queueItem: any) => {
+        const arrivalTime = queueItem.arrivalTime || queueItem.createdAt || queueItem.timestamp;
+        if (arrivalTime && queueItem.status === 'completed') {
+          const date = new Date(arrivalTime);
+          const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+          
+          if (monthlyStatsMap.has(monthKey)) {
+            const monthStats = monthlyStatsMap.get(monthKey);
+            monthStats.completedCases++;
+            monthStats.totalRevenue += 500; // Assume $500 per completed queue visit
+          }
         }
       });
 
       const monthlyStats = Array.from(monthlyStatsMap.values())
         .sort((a, b) => a.year - b.year || a.month.localeCompare(b.month));
 
-      // Patient distribution by status
+      // Patient distribution by status - combine appointments and queue data      
       const statusCount = appointments.reduce((acc: any, appointment: any) => {
         acc[appointment.status] = (acc[appointment.status] || 0) + 1;
         return acc;
       }, {});
 
-      const totalAppointments = appointments.length;
+      // Also include current queue status in the distribution
+      queueItems.forEach((queueItem: any) => {
+        const status = queueItem.status;
+        if (status === 'with_doctor') {
+          statusCount['in_session'] = (statusCount['in_session'] || 0) + 1;
+        } else {
+          statusCount[status] = (statusCount[status] || 0) + 1;
+        }
+      });
+
+      const totalPatients = appointments.length + queueItems.length;
       const patientDistribution = Object.entries(statusCount).map(([status, count]: [string, any]) => ({
         status: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
         count,
-        percentage: totalAppointments > 0 ? Math.round((count / totalAppointments) * 100) : 0
+        percentage: totalPatients > 0 ? Math.round((count / totalPatients) * 100) : 0
       }));
 
       // Appointment types distribution
       const typeCount = appointments.reduce((acc: any, appointment: any) => {
-        acc[appointment.type] = (acc[appointment.type] || 0) + 1;
+        const type = appointment.type || appointment.appointmentType || 'General Consultation';
+        acc[type] = (acc[type] || 0) + 1;
         return acc;
       }, {});
+
+      // If no appointment types found, add a default entry
+      if (Object.keys(typeCount).length === 0 && appointments.length > 0) {
+        typeCount['General Consultation'] = appointments.length;
+      }
 
       const appointmentTypes = Object.entries(typeCount).map(([type, count]: [string, any]) => ({
         type: type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' '),
         count,
-        percentage: totalAppointments > 0 ? Math.round((count / totalAppointments) * 100) : 0
+        percentage: appointments.length > 0 ? Math.round((count / appointments.length) * 100) : 0
       }));
 
       // Doctor performance
@@ -402,11 +534,54 @@ export default function AnalyticsPage() {
         }
       });
 
+      // Also include queue completions in doctor performance
+      // Only count queue items that have actual doctor assignments
+      queueItems.forEach((queueItem: any) => {
+        // Try different possible doctor identification fields
+        const doctorIdField = queueItem.doctorId || queueItem.doctor_id || queueItem.assignedDoctorId;
+        
+        if (doctorIdField && doctorStats.has(doctorIdField) && queueItem.status === 'completed') {
+          const stats = doctorStats.get(doctorIdField);
+          stats.completedAppointments++;
+          
+          // Count unique patients for this doctor from queue
+          const patientKey = queueItem.patientPhone || queueItem.patientEmail || queueItem.patientName;
+          const doctorPatients = patientsByDoctor.get(doctorIdField) || new Set();
+          if (patientKey) {
+            doctorPatients.add(patientKey);
+            patientsByDoctor.set(doctorIdField, doctorPatients);
+            stats.totalPatients = doctorPatients.size;
+          }
+        } else if (queueItem.doctorName && queueItem.status === 'completed') {
+          // Try to match by doctor name if provided
+          const matchingDoctor = doctors.find((d: any) => 
+            `${d.firstName} ${d.lastName}` === queueItem.doctorName ||
+            `Dr. ${d.firstName} ${d.lastName}` === queueItem.doctorName ||
+            `${d.lastName}` === queueItem.doctorName.replace('Dr. ', '')
+          );
+          
+          if (matchingDoctor && doctorStats.has(matchingDoctor.id)) {
+            const stats = doctorStats.get(matchingDoctor.id);
+            stats.completedAppointments++;
+            
+            const patientKey = queueItem.patientPhone || queueItem.patientEmail || queueItem.patientName;
+            const doctorPatients = patientsByDoctor.get(matchingDoctor.id) || new Set();
+            if (patientKey) {
+              doctorPatients.add(patientKey);
+              patientsByDoctor.set(matchingDoctor.id, doctorPatients);
+              stats.totalPatients = doctorPatients.size;
+            }
+          }
+        }
+        // If no doctor assignment found, don't count it - this is correct behavior
+      });
+
       const doctorPerformance = Array.from(doctorStats.values());
 
       // Queue analytics
       const priorityCount = queueItems.reduce((acc: any, item: any) => {
-        acc[item.priority] = (acc[item.priority] || 0) + 1;
+        const priority = item.priority || 'Normal';
+        acc[priority] = (acc[priority] || 0) + 1;
         return acc;
       }, {});
 
@@ -415,14 +590,18 @@ export default function AnalyticsPage() {
         count
       }));
 
-      const totalWaitTime = queueItems.reduce((sum: number, item: any) => sum + (item.estimatedWaitTime || 0), 0);
+      const totalWaitTime = queueItems.reduce((sum: number, item: any) => {
+        const waitTime = item.estimatedWaitTime || item.waitTime || (item.status === 'waiting' ? 15 : 5);
+        return sum + waitTime;
+      }, 0);
       const averageWaitTime = queueItems.length > 0 ? Math.round(totalWaitTime / queueItems.length) : 0;
 
       // Peak hours analysis
       const hourCount = new Array(24).fill(0);
       queueItems.forEach((item: any) => {
-        if (item.arrivalTime) {
-          const hour = new Date(item.arrivalTime).getHours();
+        const arrivalTime = item.arrivalTime || item.createdAt || item.timestamp;
+        if (arrivalTime) {
+          const hour = new Date(arrivalTime).getHours();
           hourCount[hour]++;
         }
       });
@@ -441,8 +620,10 @@ export default function AnalyticsPage() {
           averageWaitTime,
           peakHours,
           priorityDistribution
-        }
-      };
+        },
+        currentQueueStats,
+        totalPatients: patientRecords.length
+      } as any;
 
       setAnalyticsData(processedData);
       
@@ -660,11 +841,17 @@ export default function AnalyticsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Patients</p>
                 <p className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {analyticsData?.dailyStats.reduce((sum, day) => sum + day.newPatients, 0) || 0}
+                  {analyticsData ? 
+                    (() => {
+                      const totalPatients = (analyticsData as any).totalPatients || 0;
+                      return totalPatients;
+                    })()
+                    : 0
+                  }
                 </p>
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +12% vs last period
+                <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center">
+                  <Users className="h-3 w-3 mr-1" />
+                  Registered patients
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-xl flex items-center justify-center">
@@ -676,13 +863,22 @@ export default function AnalyticsPage() {
           <div className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 p-6 rounded-3xl shadow-lg border border-purple-100 dark:border-purple-900">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Cases Solved</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed Today</p>
                 <p className="text-2xl font-bold text-emerald-600">
-                  {analyticsData?.dailyStats.reduce((sum, day) => sum + day.completedCases, 0) || 0}
+                  {analyticsData ? 
+                    (() => {
+                      const today = new Date().toISOString().split('T')[0];
+                      const queueCompleted = (analyticsData as any).currentQueueStats?.completed || 0;
+                      const todayStats = analyticsData.dailyStats.find(day => day.date === today);
+                      const appointmentCompleted = todayStats?.completedCases || 0;
+                      return queueCompleted + appointmentCompleted;
+                    })()
+                    : 0
+                  }
                 </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +8% vs last period
+                  <Target className="h-3 w-3 mr-1" />
+                  Cases solved today
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800 rounded-xl flex items-center justify-center">
@@ -713,16 +909,89 @@ export default function AnalyticsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</p>
-                <p className="text-2xl font-bold text-emerald-600">94.2%</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {analyticsData && analyticsData.dailyStats.length > 0 ? 
+                    (() => {
+                      const totalAppointments = analyticsData.dailyStats.reduce((sum, day) => sum + day.totalAppointments, 0);
+                      const completedCases = analyticsData.dailyStats.reduce((sum, day) => sum + day.completedCases, 0);
+                      const successRate = totalAppointments > 0 ? ((completedCases / totalAppointments) * 100).toFixed(1) : '0.0';
+                      return `${successRate}%`;
+                    })()
+                    : '0.0%'
+                  }
+                </p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center">
                   <TrendingUp className="h-3 w-3 mr-1" />
-                  +2% vs last period
+                  Based on completed appointments
                 </p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-r from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800 rounded-xl flex items-center justify-center">
                 <Activity className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
+          </div>
+        </motion.div>
+
+        {/* Current Queue Status Breakdown */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white/70 backdrop-blur-xl dark:bg-gray-800/70 rounded-3xl shadow-lg border border-purple-100 dark:border-purple-900 p-6"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Current Queue Status</h3>
+            <div className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 px-3 py-1 rounded-full text-purple-700 dark:text-purple-300">
+              Live Data
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <Users className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {analyticsData ? (analyticsData as any).currentQueueStats?.total || 0 : 0}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Total</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {analyticsData ? (analyticsData as any).currentQueueStats?.waiting || 0 : 0}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Waiting</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <Activity className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {analyticsData ? (analyticsData as any).currentQueueStats?.inSession || 0 : 0}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">In Session</p>
+            </div>
+            
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full mx-auto mb-2 flex items-center justify-center">
+                <Target className="h-4 w-4 text-white" />
+              </div>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {analyticsData ? (analyticsData as any).currentQueueStats?.completed || 0 : 0}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Completed</p>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Real-time queue data • Updated from queue management system
+            </p>
           </div>
         </motion.div>
 
@@ -762,8 +1031,21 @@ export default function AnalyticsPage() {
             </div>
             
             <div className="h-64 relative">
-              {/* Bar Chart */}
-              <div className="h-full flex items-end justify-between px-2">
+              {/* Show message when no data available */}
+              {(!analyticsData || analyticsData.dailyStats.length === 0) ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-gray-400 dark:text-gray-500 mb-2">
+                      <BarChart3 className="h-12 w-12 mx-auto" />
+                    </div>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">No patient registration data available</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Data will appear once appointments are created</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Bar Chart */}
+                  <div className="h-full flex items-end justify-between px-2">
                 {analyticsData && chartType === 'daily' && analyticsData.dailyStats.slice(-7).map((day, index) => {
                   const maxRegistrations = Math.max(...analyticsData.dailyStats.slice(-7).map(d => d.newPatients));
                   const height = maxRegistrations > 0 ? (day.newPatients / maxRegistrations) * 200 : 0;
@@ -832,6 +1114,8 @@ export default function AnalyticsPage() {
                   </span>
                 </div>
               </div>
+                </>
+              )}
             </div>
           </motion.div>
 
@@ -990,7 +1274,16 @@ export default function AnalyticsPage() {
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Patient Status Distribution</h3>
             
             <div className="space-y-4">
-              {analyticsData?.patientDistribution.map((item, index) => {
+              {(!analyticsData?.patientDistribution || analyticsData.patientDistribution.length === 0) ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 dark:text-gray-500 mb-2">
+                    <PieChart className="h-12 w-12 mx-auto" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No patient status data available</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Data will appear once appointments are created</p>
+                </div>
+              ) : (
+                analyticsData?.patientDistribution.map((item, index) => {
                 const colors = [
                   isDarkMode ? '#a855f7' : '#7c3aed',
                   isDarkMode ? '#34d399' : '#10b981', 
@@ -1017,21 +1310,22 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                 );
-              })}
+              }))}
             </div>
 
             {/* Simple Donut Chart */}
-            <div className="mt-6 flex justify-center">
-              <svg width="120" height="120" viewBox="0 0 120 120">
-                <circle
-                  cx="60"
-                  cy="60"
-                  r="40"
-                  fill="none"
-                  stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                  strokeWidth="20"
-                />
-                {analyticsData?.patientDistribution.map((item, index) => {
+            {analyticsData?.patientDistribution && analyticsData.patientDistribution.length > 0 && (
+              <div className="mt-6 flex justify-center">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle
+                    cx="60"
+                    cy="60"
+                    r="40"
+                    fill="none"
+                    stroke={isDarkMode ? '#374151' : '#e5e7eb'}
+                    strokeWidth="20"
+                  />
+                  {analyticsData.patientDistribution.map((item, index) => {
                   const colors = [
                     isDarkMode ? '#a855f7' : '#7c3aed',
                     isDarkMode ? '#34d399' : '#10b981', 
@@ -1060,8 +1354,9 @@ export default function AnalyticsPage() {
                     />
                   );
                 })}
-              </svg>
-            </div>
+                </svg>
+              </div>
+            )}
           </motion.div>
         </div>
 
@@ -1077,7 +1372,16 @@ export default function AnalyticsPage() {
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Doctor Performance</h3>
             
             <div className="space-y-4">
-              {analyticsData?.doctorPerformance.slice(0, 5).map((doctor, index) => (
+              {(!analyticsData?.doctorPerformance || analyticsData.doctorPerformance.length === 0) ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 dark:text-gray-500 mb-2">
+                    <Users className="h-12 w-12 mx-auto" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No doctor performance data available</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Data will appear once doctors complete appointments</p>
+                </div>
+              ) : (
+                analyticsData.doctorPerformance.slice(0, 5).map((doctor, index) => (
                 <div key={doctor.doctorName} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-sm">
@@ -1108,7 +1412,7 @@ export default function AnalyticsPage() {
                     </p>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </motion.div>
 
@@ -1124,27 +1428,40 @@ export default function AnalyticsPage() {
             {/* Peak Hours */}
             <div className="mb-6">
               <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">Peak Hours</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {analyticsData?.queueAnalytics.peakHours.slice(0, 8).map((hour) => (
-                  <div key={hour.hour} className="text-center">
-                    <div className="h-8 bg-gradient-to-t from-purple-500 to-purple-300 rounded-t" 
-                         style={{ height: `${Math.max(8, (hour.count / (analyticsData.queueAnalytics.peakHours[0]?.count || 1)) * 32)}px` }} />
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                      {hour.hour}:00
-                    </p>
-                    <p className="text-xs font-medium text-gray-800 dark:text-gray-200">
-                      {hour.count}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {(!analyticsData?.queueAnalytics.peakHours || analyticsData.queueAnalytics.peakHours.length === 0) ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No peak hour data available</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Data will appear as queue activity increases</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2">
+                  {analyticsData.queueAnalytics.peakHours.slice(0, 8).map((hour) => (
+                    <div key={hour.hour} className="text-center">
+                      <div className="h-8 bg-gradient-to-t from-purple-500 to-purple-300 rounded-t" 
+                           style={{ height: `${Math.max(8, (hour.count / (analyticsData.queueAnalytics.peakHours[0]?.count || 1)) * 32)}px` }} />
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        {hour.hour}:00
+                      </p>
+                      <p className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                        {hour.count}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Priority Distribution */}
             <div>
               <h4 className="text-md font-semibold text-gray-800 dark:text-gray-200 mb-3">Priority Distribution</h4>
-              <div className="space-y-2">
-                {analyticsData?.queueAnalytics.priorityDistribution.map((priority) => {
+              {(!analyticsData?.queueAnalytics.priorityDistribution || analyticsData.queueAnalytics.priorityDistribution.length === 0) ? (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No priority data available</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Data will appear as queue items are added</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {analyticsData.queueAnalytics.priorityDistribution.map((priority) => {
                   const colors = {
                     Emergency: isDarkMode ? '#ef4444' : '#dc2626',
                     Urgent: isDarkMode ? '#f59e0b' : '#d97706',
@@ -1166,7 +1483,8 @@ export default function AnalyticsPage() {
                     </div>
                   );
                 })}
-              </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
